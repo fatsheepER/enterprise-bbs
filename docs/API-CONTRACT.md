@@ -212,6 +212,7 @@ X-User-Role: ADMIN
   "authorName": "Alice",
   "authorAvatar": "",
   "title": "如何统一接口返回格式",
+  "contentPreview": "帖子正文摘要，用于列表展示。",
   "status": 1,
   "viewCount": 20,
   "replyCount": 3,
@@ -496,8 +497,11 @@ GET /api/posts
 | `page` | number | 否 | `1` | 当前页 |
 | `pageSize` | number | 否 | `10` | 每页条数 |
 | `boardId` | number | 否 | 空 | 按版块筛选 |
+| `userId` | number | 否 | 空 | 按发帖用户筛选，用于个人主页或本用户帖子列表 |
 | `keyword` | string | 否 | 空 | 按标题关键词搜索 |
 | `sort` | string | 否 | `latest` | 排序：`latest` 最新回复/更新，`newest` 最新发布，`views` 浏览量 |
+
+`boardId`、`userId`、`keyword` 和 `sort` 可以组合使用；前台仍只返回 `status=1` 的帖子。
 
 响应 `data`：分页对象，`list` 元素为 `PostListItemVO`
 
@@ -515,6 +519,7 @@ GET /api/posts
       "authorName": "Alice",
       "authorAvatar": "",
       "title": "如何统一接口返回格式",
+      "contentPreview": "我在整理前端 Axios 封装，希望所有接口都返回统一的 code、message、data 和 timestamp...",
       "status": 1,
       "viewCount": 20,
       "replyCount": 3,
