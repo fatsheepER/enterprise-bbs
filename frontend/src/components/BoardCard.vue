@@ -30,7 +30,14 @@ defineProps({
 
     <div class="board-card__posts" aria-label="最新帖子">
       <div v-for="post in posts" :key="post.id" class="board-card__post">
-        <p class="board-card__post-title">{{ post.title }}</p>
+        <p class="board-card__post-title">
+          <RouterLink
+            class="board-card__post-link"
+            :to="{ name: 'post-detail', params: { id: post.id } }"
+          >
+            {{ post.title }}
+          </RouterLink>
+        </p>
         <span class="board-card__post-time">{{ post.relativeTime }}</span>
       </div>
     </div>

@@ -45,9 +45,16 @@ function postActivity(post) {
         <template v-else>
           <tr v-for="post in posts" :key="post.id" class="posts-table__row">
             <td class="posts-table__post-cell">
-              <h2 class="posts-table__title">{{ post.title }}</h2>
+              <h2 class="posts-table__title">
+                <RouterLink :to="{ name: 'post-detail', params: { id: post.id } }">
+                  {{ post.title }}
+                </RouterLink>
+              </h2>
               <p class="posts-table__excerpt">{{ postPreview(post) }}</p>
-              <span class="posts-table__badge" :style="{ '--board-color': post.boardColorHex }">
+              <span
+                class="board-badge posts-table__badge"
+                :style="{ '--board-color': post.boardColorHex }"
+              >
                 {{ post.boardName }}
               </span>
             </td>
