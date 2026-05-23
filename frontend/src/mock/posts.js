@@ -1,0 +1,73 @@
+export const posts = [
+  {
+    id: 1,
+    boardId: 1,
+    userId: 2,
+    title: '如何统一前后端接口返回格式？',
+    content:
+      '我在整理前端 Axios 封装，希望所有接口都返回统一的 code、message、data 和 timestamp。大家觉得后端 Result<T> 应该怎么设计，分页数据应该放在哪里？',
+    status: 1,
+    viewCount: 42,
+    createdAt: '2026-05-21 09:30:00',
+    updatedAt: '2026-05-23 15:40:00',
+  },
+  {
+    id: 2,
+    boardId: 1,
+    userId: 3,
+    title: 'PostgreSQL 表结构里的 status 字段怎么约定？',
+    content:
+      '目前 users、boards、posts、replies 四张表都需要支持演示。帖子和回复想做软删除，版块想做停用。是否统一用 status = 1 正常，status = 0 隐藏或停用？',
+    status: 1,
+    viewCount: 28,
+    createdAt: '2026-05-21 10:10:00',
+    updatedAt: '2026-05-22 16:15:00',
+  },
+  {
+    id: 3,
+    boardId: 2,
+    userId: 1,
+    title: '课程设计第一版 demo 数据已准备',
+    content:
+      '管理员账号 admin / admin123，普通用户账号 alice / 123456、bob / 123456。请优先验证登录、发帖、回复和管理端版块维护流程。',
+    status: 1,
+    viewCount: 65,
+    createdAt: '2026-05-21 14:00:00',
+    updatedAt: '2026-05-23 14:20:00',
+  },
+  {
+    id: 4,
+    boardId: 3,
+    userId: 4,
+    title: '帖子详情页是否需要复杂嵌套回复？',
+    content:
+      '根据基础方案，回复支持 parent_reply_id，但前端不做复杂树形嵌套，只在回复上方展示被引用回复的摘要。这样更适合快速完成 demo。',
+    status: 1,
+    viewCount: 31,
+    createdAt: '2026-05-22 11:00:00',
+    updatedAt: '2026-05-23 13:30:00',
+  },
+  {
+    id: 5,
+    boardId: 4,
+    userId: 2,
+    title: 'API 协议和数据库脚本归档位置',
+    content:
+      'API 协议放在 docs/API-CONTRACT.md，PostgreSQL 建表脚本放在 sql/schema.sql，演示数据放在 sql/data.sql。',
+    status: 1,
+    viewCount: 19,
+    createdAt: '2026-05-22 17:20:00',
+    updatedAt: '2026-05-22 18:00:00',
+  },
+  {
+    id: 6,
+    boardId: 3,
+    userId: 3,
+    title: '已隐藏帖子示例',
+    content: '这条帖子用于管理端帖子状态筛选演示，前台列表不应该展示。',
+    status: 0,
+    viewCount: 7,
+    createdAt: '2026-05-22 19:00:00',
+    updatedAt: '2026-05-22 19:30:00',
+  },
+]

@@ -1,7 +1,9 @@
 <script setup>
 import OverviewTabs from '../../components/OverviewTabs.vue'
 import PostListItem from '../../components/PostListItem.vue'
-import { posts } from '../../mock/forum'
+import { visiblePosts } from '../../mock/forumViewModels'
+
+const posts = visiblePosts()
 </script>
 
 <template>

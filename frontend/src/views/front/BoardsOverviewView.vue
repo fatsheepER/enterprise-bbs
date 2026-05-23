@@ -1,7 +1,10 @@
 <script setup>
 import BoardCard from '../../components/BoardCard.vue'
 import OverviewTabs from '../../components/OverviewTabs.vue'
-import { boards, posts } from '../../mock/forum'
+import { visibleBoards, visiblePosts } from '../../mock/forumViewModels'
+
+const boards = visibleBoards()
+const posts = visiblePosts()
 
 function latestPostsForBoard(boardId) {
   return posts.filter((post) => post.boardId === boardId).slice(0, 3)
