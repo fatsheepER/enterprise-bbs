@@ -15,7 +15,14 @@ defineProps({
   <article class="board-card" :style="{ '--board-color': board.colorHex }">
     <div class="board-card__content">
       <div class="board-card__title-row">
-        <h2 class="board-card__title">{{ board.name }}</h2>
+        <h2 class="board-card__title">
+          <RouterLink
+            class="board-card__title-link"
+            :to="{ name: 'board-detail', params: { id: board.id } }"
+          >
+            {{ board.name }}
+          </RouterLink>
+        </h2>
       </div>
 
       <p class="board-card__description">{{ board.description }}</p>

@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
+import BoardDetailView from '../views/front/BoardDetailView.vue'
 import BoardsOverviewView from '../views/front/BoardsOverviewView.vue'
 import PostsView from '../views/front/PostsView.vue'
 
@@ -15,6 +16,11 @@ const router = createRouter({
       path: '/posts',
       name: 'posts',
       component: PostsView,
+    },
+    {
+      path: '/board/:id',
+      name: 'board-detail',
+      component: BoardDetailView,
     },
   ],
 })
