@@ -27,6 +27,14 @@ function formatRelativeTime(dateTime) {
   return `${Math.round(diffHours / 24)}d`
 }
 
+function contentPreview(content) {
+  return content.length > 96 ? `${content.slice(0, 96)}...` : content
+}
+
+function matchesOptionalId(value, expected) {
+  return expected == null || value === Number(expected)
+}
+
 export function visibleBoards() {
   return boards
     .filter((board) => board.status === 1)
@@ -43,9 +51,14 @@ export function visibleBoards() {
     })
 }
 
-export function visiblePosts() {
+export function visiblePosts({ boardId, userId } = {}) {
   return posts
-    .filter((post) => post.status === 1)
+    .filter(
+      (post) =>
+        post.status === 1 &&
+        matchesOptionalId(post.boardId, boardId) &&
+        matchesOptionalId(post.userId, userId),
+    )
     .toSorted((left, right) => new Date(right.updatedAt) - new Date(left.updatedAt))
     .map((post) => {
       const board = boardById.get(post.boardId)
@@ -57,6 +70,7 @@ export function visiblePosts() {
         boardColorHex: board?.colorHex ?? '#007aff',
         authorName: author?.nickname || author?.username || '未知用户',
         authorAvatar: author?.avatar ?? '',
+        contentPreview: contentPreview(post.content),
         replyCount: activeReplyCount(post.id),
         relativeTime: formatRelativeTime(post.updatedAt),
       }
