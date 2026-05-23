@@ -1,13 +1,16 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import arrowUpIcon from '../../assets/arrowshape.up.svg'
 import messageIcon from '../../assets/message.svg'
 import personPlaceholder from '../../assets/person-placeholder.svg'
 import { postDetail, postReplies } from '../../mock/forumViewModels'
+import { useAuthStore } from '../../stores/auth'
 
 const route = useRoute()
+const router = useRouter()
+const authStore = useAuthStore()
 const postId = computed(() => Number(route.params.id))
 const post = computed(() => postDetail(postId.value))
 const replies = ref([])
@@ -25,26 +28,6 @@ function formatTimestamp(date = new Date()) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(
     date.getHours(),
   )}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
-}
-
-function readCurrentUser() {
-  try {
-    const storedUser = JSON.parse(localStorage.getItem('currentUser') || 'null')
-
-    if (storedUser?.id) {
-      return storedUser
-    }
-  } catch {
-    // Ignore malformed demo login data and use the mock fallback user.
-  }
-
-  return {
-    id: 2,
-    username: 'alice',
-    nickname: 'Alice 王',
-    avatar: '',
-    role: 'USER',
-  }
 }
 
 function previewText(content = '', maxLength = 72) {
@@ -65,7 +48,24 @@ const visibleReplyCount = computed(() => replies.value.length)
 const replyPlaceholder = computed(() => `回复： ${replyTarget.value?.contentPreview ?? ''}`)
 const canSubmit = computed(() => draft.value.trim().length > 0)
 
+function requireLogin() {
+  if (authStore.isLoggedIn) {
+    return true
+  }
+
+  router.push({
+    path: '/login',
+    query: { redirect: route.fullPath },
+  })
+
+  return false
+}
+
 function openReplyComposer(target) {
+  if (!requireLogin()) {
+    return
+  }
+
   replyTarget.value = {
     id: target.id,
     type: target.type,
@@ -109,7 +109,11 @@ function submitReply() {
     return
   }
 
-  const currentUser = readCurrentUser()
+  if (!requireLogin()) {
+    return
+  }
+
+  const currentUser = authStore.currentUser
   const createdAt = formatTimestamp()
   const parentReply = replyTarget.value.type === 'reply' ? replyTarget.value : null
   const newReply = {

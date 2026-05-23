@@ -1,10 +1,13 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 import personPlaceholder from '../assets/person-placeholder.svg'
 import { useAuthStore } from '../stores/auth'
 
 const authStore = useAuthStore()
+const route = useRoute()
+const router = useRouter()
 const isMenuOpen = ref(false)
 const accountMenuRef = ref(null)
 
@@ -19,6 +22,10 @@ function closeMenu() {
 function signOut() {
   authStore.logout()
   closeMenu()
+
+  if (route.path === '/profile' || route.path.startsWith('/admin')) {
+    router.push('/')
+  }
 }
 
 function handleDocumentPointerDown(event) {

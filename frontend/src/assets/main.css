@@ -288,8 +288,8 @@ a {
 .auth-card__title {
   margin: 0 0 12px;
   color: #1d1d1f;
-  font-size: 28px;
-  font-weight: 600;
+  font-size: 24px;
+  font-weight: 500;
   line-height: 1.15;
   text-align: center;
 }
@@ -1274,7 +1274,7 @@ a {
   }
 
   .auth-card__title {
-    font-size: 26px;
+    font-size: 22px;
   }
 
   .auth-field__input {
@@ -1377,7 +1377,7 @@ a {
   }
 
   .auth-card__title {
-    font-size: 24px;
+    font-size: 22px;
   }
 
   .auth-card__fields {
