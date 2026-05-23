@@ -119,6 +119,12 @@ a {
   gap: 14px;
 }
 
+.account-menu-anchor {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
 .post-button {
   min-width: 64px;
   height: 36px;
@@ -137,35 +143,234 @@ a {
   border: 0;
   border-radius: 999px;
   background: #e8e8ed;
+  padding: 0;
 }
 
-.avatar-button__glyph {
-  position: relative;
+.avatar-button__image {
   display: block;
-  width: 19px;
-  height: 19px;
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
 }
 
-.avatar-button__glyph::before,
-.avatar-button__glyph::after {
+.account-menu {
   position: absolute;
-  left: 50%;
+  z-index: 20;
+  top: calc(100% + 10px);
+  right: 0;
+  overflow: hidden;
+  border: 1px solid #d2d2d7;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 10px 24px rgb(0 0 0 / 12%);
+}
+
+.account-menu--guest {
+  width: min(240px, calc(100vw - 32px));
+}
+
+.account-menu--user {
+  width: min(340px, calc(100vw - 32px));
+}
+
+.account-menu__item {
+  display: flex;
+  width: 100%;
+  min-height: 52px;
+  align-items: center;
+  border: 0;
+  border-top: 1px solid #d2d2d7;
+  background: #fff;
+  padding: 0 18px;
+  color: #1d1d1f;
+  font-size: 16px;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.account-menu--guest .account-menu__item:first-child {
+  border-top: 0;
+}
+
+.account-menu__item:hover,
+.account-menu__item:focus-visible {
+  background: #e8e8ed;
+  outline: none;
+}
+
+.account-menu__profile {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  min-height: 86px;
+  padding: 18px;
+}
+
+.account-menu__avatar {
+  width: 52px;
+  height: 52px;
   border-radius: 999px;
-  background: #8e8e93;
-  content: '';
-  transform: translateX(-50%);
+  background: #e8e8ed;
+  padding: 10px;
+  object-fit: contain;
 }
 
-.avatar-button__glyph::before {
-  top: 1px;
-  width: 8px;
-  height: 8px;
+.account-menu__profile-main {
+  min-width: 0;
 }
 
-.avatar-button__glyph::after {
-  bottom: 0;
-  width: 17px;
-  height: 9px;
+.account-menu__name {
+  display: block;
+  overflow: hidden;
+  margin-bottom: 6px;
+  color: #1d1d1f;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-menu__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  color: #06c;
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+.account-menu__links span {
+  color: #d2d2d7;
+}
+
+.auth-page {
+  display: grid;
+  min-height: calc(100vh - 194px);
+  place-items: start center;
+  padding-top: 42px;
+}
+
+.auth-card {
+  display: grid;
+  width: min(100%, 460px);
+  gap: 18px;
+}
+
+.auth-card__title {
+  margin: 0 0 12px;
+  color: #1d1d1f;
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.auth-card__fields {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid #8e8e93;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.auth-field {
+  display: grid;
+}
+
+.auth-field+.auth-field {
+  border-top: 1px solid #d2d2d7;
+}
+
+.auth-field__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.auth-field__input {
+  width: 100%;
+  height: 52px;
+  border: 0;
+  outline: none;
+  padding: 0 16px;
+  background: #fff;
+  color: #1d1d1f;
+  font-size: 16px;
+}
+
+.auth-field:first-child .auth-field__input {
+  border-radius: 11px 11px 0 0;
+}
+
+.auth-field:last-child .auth-field__input {
+  border-radius: 0 0 11px 11px;
+}
+
+.auth-field__input::placeholder {
+  color: #86868b;
+}
+
+.auth-field__input:focus {
+  box-shadow: inset 0 0 0 2px #06c;
+}
+
+.auth-card__link {
+  width: fit-content;
+  color: #06c;
+  font-size: 15px;
+  line-height: 1.25;
+}
+
+.auth-card__link:hover,
+.auth-card__link:focus-visible {
+  text-decoration: underline;
+}
+
+.auth-card__error {
+  margin: -4px 0 0;
+  color: #b00020;
+  font-size: 14px;
+}
+
+.auth-card__submit {
+  width: 100%;
+  height: 44px;
+  border: 0;
+  border-radius: 8px;
+  background: #0071e3;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.auth-card__submit:hover,
+.auth-card__submit:focus-visible {
+  background: #0077ed;
+}
+
+.placeholder-page {
+  border-radius: 9px;
+  background: #fff;
+  padding: 46px 52px;
+}
+
+.placeholder-page__title {
+  margin: 0 0 12px;
+  font-size: 40px;
+  line-height: 1.14;
+}
+
+.placeholder-page__description {
+  margin: 0;
+  color: #6e6e73;
+  font-size: 18px;
+  line-height: 1.45;
 }
 
 .overview-heading {
@@ -487,8 +692,8 @@ a {
 }
 
 .board-hero__icon-image {
-  width: 34px;
-  height: 34px;
+  width: 45px;
+  height: 45px;
   object-fit: contain;
 }
 
@@ -998,6 +1203,45 @@ a {
     grid-row: 2;
   }
 
+  .account-menu--user {
+    width: min(320px, calc(100vw - 28px));
+  }
+
+  .account-menu__item {
+    min-height: 50px;
+    padding: 0 16px;
+    font-size: 16px;
+  }
+
+  .account-menu__profile {
+    min-height: 82px;
+    padding: 16px;
+  }
+
+  .account-menu__avatar {
+    width: 48px;
+    height: 48px;
+  }
+
+  .account-menu__name,
+  .account-menu__links {
+    font-size: 15px;
+  }
+
+  .auth-page {
+    min-height: auto;
+    padding-top: 24px;
+  }
+
+  .auth-card__title {
+    font-size: 26px;
+  }
+
+  .auth-field__input {
+    height: 50px;
+    font-size: 16px;
+  }
+
   .overview-heading {
     font-size: 40px;
   }
@@ -1044,7 +1288,7 @@ a {
   }
 
   .board-hero__title {
-    font-size: 36px;
+    font-size: 30px;
   }
 
   .board-hero__description {
@@ -1074,6 +1318,41 @@ a {
     font-size: 14px;
   }
 
+  .account-menu {
+    right: -2px;
+  }
+
+  .account-menu__profile {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    align-items: start;
+  }
+
+  .account-menu__links {
+    gap: 8px;
+  }
+
+  .auth-card {
+    gap: 16px;
+  }
+
+  .auth-card__title {
+    font-size: 24px;
+  }
+
+  .auth-card__fields {
+    border-radius: 12px;
+  }
+
+  .auth-card__link {
+    font-size: 15px;
+  }
+
+  .auth-card__submit {
+    height: 44px;
+    font-size: 16px;
+  }
+
   .board-card {
     padding: 30px 24px 28px;
   }
@@ -1098,7 +1377,7 @@ a {
   }
 
   .board-hero__title {
-    font-size: 32px;
+    font-size: 30px;
   }
 
   .board-hero__description {
