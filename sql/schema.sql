@@ -69,7 +69,7 @@ CREATE TABLE replies (
 
 CREATE INDEX idx_boards_status_sort ON boards (status, sort_order, id);
 CREATE INDEX idx_posts_board_status_updated ON posts (board_id, status, updated_at DESC);
-CREATE INDEX idx_posts_user ON posts (user_id);
+CREATE INDEX idx_posts_user_status_updated ON posts (user_id, status, updated_at DESC);
 CREATE INDEX idx_posts_status_updated ON posts (status, updated_at DESC);
 CREATE INDEX idx_replies_post_status_created ON replies (post_id, status, created_at ASC);
 CREATE INDEX idx_replies_user ON replies (user_id);
