@@ -6,6 +6,7 @@ import PostDetailView from '../views/front/PostDetailView.vue'
 import PostsView from '../views/front/PostsView.vue'
 import LoginView from '../views/LoginView.vue'
 import PlaceholderView from '../views/PlaceholderView.vue'
+import RegisterView from '../views/RegisterView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -28,11 +29,7 @@ const router = createRouter({
     {
       path: '/register',
       name: 'register',
-      component: PlaceholderView,
-      props: {
-        title: '创建账户',
-        description: '注册表单将在下一步接入 mock 用户数据。',
-      },
+      component: RegisterView,
     },
     {
       path: '/profile',

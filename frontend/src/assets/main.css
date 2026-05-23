@@ -259,6 +259,32 @@ a {
   gap: 18px;
 }
 
+.auth-card--register {
+  width: min(100%, 520px);
+  gap: 14px;
+}
+
+.auth-card--register .auth-card__title {
+  margin-bottom: 4px;
+}
+
+.auth-avatar-preview {
+  display: grid;
+  justify-self: center;
+  width: 72px;
+  height: 72px;
+  margin-bottom: 8px;
+  place-items: center;
+  border-radius: 999px;
+  background: #e8e8ed;
+}
+
+.auth-avatar-preview__image {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+}
+
 .auth-card__title {
   margin: 0 0 12px;
   color: #1d1d1f;
@@ -304,12 +330,26 @@ a {
   font-size: 16px;
 }
 
+.auth-field__input--textarea {
+  display: block;
+  height: auto;
+  min-height: 88px;
+  padding-top: 14px;
+  padding-bottom: 14px;
+  line-height: 1.45;
+  resize: vertical;
+}
+
 .auth-field:first-child .auth-field__input {
   border-radius: 11px 11px 0 0;
 }
 
 .auth-field:last-child .auth-field__input {
   border-radius: 0 0 11px 11px;
+}
+
+.auth-field:only-child .auth-field__input {
+  border-radius: 11px;
 }
 
 .auth-field__input::placeholder {

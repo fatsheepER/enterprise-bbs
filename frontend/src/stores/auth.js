@@ -4,6 +4,7 @@ import { defineStore } from 'pinia'
 import { users } from '../mock/users'
 
 const CURRENT_USER_KEY = 'currentUser'
+const MOCK_USERS_KEY = 'mockUsers'
 
 function withoutPassword(user) {
   const safeUser = { ...user }
@@ -21,6 +22,33 @@ function readStoredUser() {
   }
 }
 
+function readMockUsers() {
+  try {
+    const storedUsers = JSON.parse(localStorage.getItem(MOCK_USERS_KEY) || '[]')
+
+    return Array.isArray(storedUsers) ? storedUsers : []
+  } catch {
+    localStorage.removeItem(MOCK_USERS_KEY)
+    return []
+  }
+}
+
+function writeMockUsers(mockUsers) {
+  localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(mockUsers))
+}
+
+function allUsers() {
+  return [...users, ...readMockUsers()]
+}
+
+function formatTimestamp(date = new Date()) {
+  const pad = (value) => String(value).padStart(2, '0')
+
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(
+    date.getHours(),
+  )}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+}
+
 export const useAuthStore = defineStore('auth', () => {
   const currentUser = ref(readStoredUser())
 
@@ -32,7 +60,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   function login({ username, password }) {
     const normalizedUsername = username.trim()
-    const matchedUser = users.find(
+    const matchedUser = allUsers().find(
       (user) => user.username === normalizedUsername && user.password === password,
     )
 
@@ -41,6 +69,40 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     const safeUser = withoutPassword(matchedUser)
+    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(safeUser))
+    currentUser.value = safeUser
+
+    return safeUser
+  }
+
+  function register({ username, password, nickname, avatar, email, bio }) {
+    const normalizedUsername = username.trim()
+    const normalizedNickname = nickname.trim() || normalizedUsername
+    const normalizedAvatar = avatar?.trim() ?? ''
+    const normalizedEmail = email.trim()
+    const normalizedBio = bio.trim()
+
+    if (allUsers().some((user) => user.username === normalizedUsername)) {
+      throw new Error('用户名已存在')
+    }
+
+    const now = formatTimestamp()
+    const newUser = {
+      id: Math.max(0, ...allUsers().map((user) => user.id)) + 1,
+      username: normalizedUsername,
+      password,
+      nickname: normalizedNickname,
+      avatar: normalizedAvatar,
+      email: normalizedEmail,
+      bio: normalizedBio,
+      role: 'USER',
+      createdAt: now,
+      updatedAt: now,
+    }
+    const nextMockUsers = [...readMockUsers(), newUser]
+    writeMockUsers(nextMockUsers)
+
+    const safeUser = withoutPassword(newUser)
     localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(safeUser))
     currentUser.value = safeUser
 
@@ -62,6 +124,7 @@ export const useAuthStore = defineStore('auth', () => {
     isAdmin,
     displayName,
     login,
+    register,
     logout,
     syncFromStorage,
   }
