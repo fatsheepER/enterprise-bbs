@@ -282,6 +282,37 @@ X-User-Role: ADMIN
 }
 ```
 
+### 5.6 UserReplyListItemVO
+
+用于个人主页展示当前登录用户发表过的回复。`reference` 字段永远存在：如果 `parentReplyId` 不为空，引用父回复摘要；如果 `parentReplyId` 为空，引用原帖摘要。
+
+```json
+{
+  "id": 1,
+  "postId": 1,
+  "userId": 2,
+  "authorName": "Alice",
+  "authorAvatar": "",
+  "parentReplyId": null,
+  "content": "我也遇到过这个问题。",
+  "status": 1,
+  "createdAt": "2026-05-23 16:30:00",
+  "updatedAt": "2026-05-23 16:30:00",
+  "postTitle": "如何统一接口返回格式",
+  "postContentPreview": "帖子正文摘要，用于个人主页引用展示。",
+  "boardId": 1,
+  "boardName": "技术交流",
+  "boardColorHex": "#007aff",
+  "reference": {
+    "type": "post",
+    "id": 1,
+    "authorName": "Bob",
+    "contentPreview": "帖子正文摘要，用于个人主页引用展示。",
+    "href": "/post/1"
+  }
+}
+```
+
 ## 6. 用户接口
 
 ### 6.1 用户注册
@@ -423,6 +454,30 @@ X-User-Role: USER
 | `bio` | string | 否 | 个人简介 |
 
 响应 `data`：`UserVO`
+
+### 6.5 获取我的回复列表
+
+```text
+GET /api/user/replies
+```
+
+需要登录。用于个人主页展示当前登录用户发表过的回复。
+
+请求头：
+
+```text
+X-User-Id: 1
+X-User-Role: USER
+```
+
+查询参数：
+
+| 参数 | 类型 | 必填 | 默认值 | 说明 |
+| --- | --- | --- | --- | --- |
+| `page` | number | 否 | `1` | 当前页 |
+| `pageSize` | number | 否 | `10` | 每页条数 |
+
+响应 `data`：分页对象，`list` 元素为 `UserReplyListItemVO`
 
 ## 7. 版块接口
 
@@ -998,6 +1053,7 @@ true
 | 用户 | `POST` | `/api/user/login` | 公开 | 用户/管理员登录 |
 | 用户 | `GET` | `/api/user/profile` | 登录 | 获取个人资料 |
 | 用户 | `PUT` | `/api/user/profile` | 登录 | 修改个人资料 |
+| 用户 | `GET` | `/api/user/replies` | 登录 | 获取我的回复列表 |
 | 版块 | `GET` | `/api/boards` | 公开 | 获取启用版块列表 |
 | 版块 | `GET` | `/api/boards/{id}` | 公开 | 获取版块详情 |
 | 帖子 | `GET` | `/api/posts` | 公开 | 获取帖子列表 |

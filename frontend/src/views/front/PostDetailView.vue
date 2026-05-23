@@ -100,7 +100,7 @@ function scrollToTop() {
 function scrollToReply(replyId) {
   document.getElementById(`reply-${replyId}`)?.scrollIntoView({
     behavior: 'smooth',
-    block: 'center',
+    block: 'start',
   })
 }
 
