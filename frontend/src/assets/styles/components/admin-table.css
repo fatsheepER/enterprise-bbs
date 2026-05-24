@@ -25,7 +25,7 @@
   font-size: 14px;
   line-height: 1.35;
   text-align: left;
-  vertical-align: top;
+  vertical-align: middle;
 }
 
 th.admin-table__cell {
@@ -98,6 +98,15 @@ th.admin-table__cell {
 .admin-table__action:focus-visible {
   background: #333336;
   outline: none;
+}
+
+.admin-table__action--danger {
+  background: #b42318;
+}
+
+.admin-table__action--danger:hover,
+.admin-table__action--danger:focus-visible {
+  background: #8f1d14;
 }
 
 @media (max-width: 980px) {

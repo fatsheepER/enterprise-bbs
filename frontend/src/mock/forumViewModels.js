@@ -32,6 +32,14 @@ function activeReplyCount(postId) {
   return replies.filter((reply) => reply.postId === postId && reply.status === 1).length
 }
 
+function replyCount(postId) {
+  return replies.filter((reply) => reply.postId === postId).length
+}
+
+function latestReplyTime(postId) {
+  return latestByUpdatedAt(replies.filter((reply) => reply.postId === postId))?.updatedAt ?? ''
+}
+
 function formatRelativeTime(dateTime) {
   const time = new Date(dateTime).getTime()
   const diffHours = Math.max(1, Math.round((mockNow - time) / 1000 / 60 / 60))
@@ -120,6 +128,14 @@ function withPostMeta(post) {
     contentPreview: contentPreview(post.content),
     replyCount: activeReplyCount(post.id),
     relativeTime: formatRelativeTime(post.updatedAt),
+  }
+}
+
+function withAdminPostMeta(post) {
+  return {
+    ...withPostMeta(post),
+    replyCount: replyCount(post.id),
+    latestReplyTime: latestReplyTime(post.id),
   }
 }
 
@@ -290,6 +306,31 @@ export function visiblePosts({ boardId, userId } = {}) {
     )
     .toSorted((left, right) => new Date(right.updatedAt) - new Date(left.updatedAt))
     .map(withPostMeta)
+}
+
+export function adminPosts({ id, keyword, status } = {}) {
+  const normalizedKeyword = keyword?.trim().toLowerCase() ?? ''
+  const normalizedStatus = status === '' || status == null ? null : Number(status)
+
+  return posts
+    .filter((post) => matchesOptionalId(post.id, id))
+    .filter((post) => !normalizedKeyword || post.title.toLowerCase().includes(normalizedKeyword))
+    .filter((post) => normalizedStatus == null || post.status === normalizedStatus)
+    .toSorted((left, right) => new Date(right.updatedAt) - new Date(left.updatedAt))
+    .map(withAdminPostMeta)
+}
+
+export function updateAdminPostStatus(id, status) {
+  const post = posts.find((item) => item.id === Number(id))
+
+  if (!post) {
+    throw new Error('帖子不存在')
+  }
+
+  post.status = Number(status) === 0 ? 0 : 1
+  post.updatedAt = formatTimestamp()
+
+  return withAdminPostMeta(post)
 }
 
 export function postDetail(postId) {
