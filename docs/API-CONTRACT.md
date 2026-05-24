@@ -125,40 +125,22 @@ X-User-Role: ADMIN
 - 管理员可以发帖、回复，并可以访问 `/api/admin/**` 接口管理版块、帖子和回复状态。
 - 后端可以根据 `X-User-Id` 和 `X-User-Role` 做基础权限校验。
 
-## 4. 分页格式
+## 4. 列表返回与前端分页约定
 
-分页查询统一使用以下请求参数：
+本课程设计演示数据量较小，后端列表接口默认直接返回满足筛选条件的全部数据，不做服务端分页。前端如需分页展示，在拿到完整数组后自行按页切片。
 
-| 参数 | 类型 | 必填 | 默认值 | 说明 |
-| --- | --- | --- | --- | --- |
-| `page` | number | 否 | `1` | 当前页，从 1 开始 |
-| `pageSize` | number | 否 | `10` | 每页条数 |
-
-分页响应统一放在 `data` 中：
+列表响应统一放在 `data` 中，`data` 直接是数组：
 
 ```json
 {
-  "list": [],
-  "total": 0,
-  "page": 1,
-  "pageSize": 10,
-  "totalPages": 0,
-  "hasNext": false,
-  "hasPrevious": false
+  "code": 200,
+  "message": "success",
+  "data": [],
+  "timestamp": "2026-05-23 16:30:00"
 }
 ```
 
-字段说明：
-
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| `list` | array | 当前页数据 |
-| `total` | number | 总记录数 |
-| `page` | number | 当前页 |
-| `pageSize` | number | 每页条数 |
-| `totalPages` | number | 总页数 |
-| `hasNext` | boolean | 是否有下一页 |
-| `hasPrevious` | boolean | 是否有上一页 |
+后端仍保留必要的筛选和排序参数，例如 `boardId`、`userId`、`keyword`、`status`、`sort`；不要求处理 `page`、`pageSize`、`totalPages` 等分页字段。
 
 ## 5. 公共数据模型
 
@@ -313,7 +295,7 @@ X-User-Role: ADMIN
     "id": 1,
     "authorName": "Bob",
     "contentPreview": "帖子正文摘要，用于个人主页引用展示。",
-    "href": "/post/1"
+    "href": "/posts/1"
   }
 }
 ```
@@ -514,14 +496,7 @@ X-User-Id: 1
 X-User-Role: USER
 ```
 
-查询参数：
-
-| 参数 | 类型 | 必填 | 默认值 | 说明 |
-| --- | --- | --- | --- | --- |
-| `page` | number | 否 | `1` | 当前页 |
-| `pageSize` | number | 否 | `10` | 每页条数 |
-
-响应 `data`：分页对象，`list` 元素为 `UserReplyListItemVO`
+响应 `data`：数组，元素为 `UserReplyListItemVO`；前端个人主页自行分页展示。
 
 ## 7. 版块接口
 
@@ -593,8 +568,6 @@ GET /api/posts
 
 | 参数 | 类型 | 必填 | 默认值 | 说明 |
 | --- | --- | --- | --- | --- |
-| `page` | number | 否 | `1` | 当前页 |
-| `pageSize` | number | 否 | `10` | 每页条数 |
 | `boardId` | number | 否 | 空 | 按版块筛选 |
 | `userId` | number | 否 | 空 | 按发帖用户筛选，用于个人主页或本用户帖子列表 |
 | `keyword` | string | 否 | 空 | 按标题关键词搜索 |
@@ -602,38 +575,30 @@ GET /api/posts
 
 `boardId`、`userId`、`keyword` 和 `sort` 可以组合使用；前台仍只返回 `status=1` 的帖子。
 
-响应 `data`：分页对象，`list` 元素为 `PostListItemVO`
+响应 `data`：数组，元素为 `PostListItemVO`；前端自行分页展示。
 
 示例：
 
 ```json
-{
-  "list": [
-    {
-      "id": 1,
-      "boardId": 1,
-      "boardName": "技术交流",
-      "boardColorHex": "#007aff",
-      "userId": 1,
-      "authorName": "Alice",
-      "authorAvatar": "",
-      "authorRole": "USER",
-      "title": "如何统一接口返回格式",
-      "contentPreview": "我在整理前端 Axios 封装，希望所有接口都返回统一的 code、message、data 和 timestamp...",
-      "status": 1,
-      "viewCount": 20,
-      "replyCount": 3,
-      "createdAt": "2026-05-23 16:30:00",
-      "updatedAt": "2026-05-23 16:30:00"
-    }
-  ],
-  "total": 1,
-  "page": 1,
-  "pageSize": 10,
-  "totalPages": 1,
-  "hasNext": false,
-  "hasPrevious": false
-}
+[
+  {
+    "id": 1,
+    "boardId": 1,
+    "boardName": "技术交流",
+    "boardColorHex": "#007aff",
+    "userId": 1,
+    "authorName": "Alice",
+    "authorAvatar": "",
+    "authorRole": "USER",
+    "title": "如何统一接口返回格式",
+    "contentPreview": "我在整理前端 Axios 封装，希望所有接口都返回统一的 code、message、data 和 timestamp...",
+    "status": 1,
+    "viewCount": 20,
+    "replyCount": 3,
+    "createdAt": "2026-05-23 16:30:00",
+    "updatedAt": "2026-05-23 16:30:00"
+  }
+]
 ```
 
 ### 8.2 获取帖子详情
@@ -730,14 +695,7 @@ GET /api/posts/{postId}/replies
 | --- | --- | --- | --- |
 | `postId` | number | 是 | 帖子 ID |
 
-查询参数：
-
-| 参数 | 类型 | 必填 | 默认值 | 说明 |
-| --- | --- | --- | --- | --- |
-| `page` | number | 否 | `1` | 当前页 |
-| `pageSize` | number | 否 | `20` | 每页条数 |
-
-响应 `data`：分页对象，`list` 元素为 `ReplyVO`
+响应 `data`：数组，元素为 `ReplyVO`；前端帖子详情页自行分页或直接展示。
 
 ### 9.2 发表回复
 
@@ -966,14 +924,12 @@ GET /api/admin/posts
 
 | 参数 | 类型 | 必填 | 默认值 | 说明 |
 | --- | --- | --- | --- | --- |
-| `page` | number | 否 | `1` | 当前页 |
-| `pageSize` | number | 否 | `10` | 每页条数 |
 | `id` | number | 否 | 空 | 按帖子 ID 精确查询 |
 | `boardId` | number | 否 | 空 | 按版块筛选 |
 | `keyword` | string | 否 | 空 | 按标题关键词搜索 |
 | `status` | number | 否 | 空 | 状态：`1` 正常，`0` 隐藏 |
 
-响应 `data`：分页对象，`list` 元素为 `PostListItemVO`
+响应 `data`：数组，元素为 `PostListItemVO`；管理端自行分页展示。
 
 ### 10.7 修改帖子状态
 
@@ -1037,14 +993,12 @@ GET /api/admin/replies
 
 | 参数 | 类型 | 必填 | 默认值 | 说明 |
 | --- | --- | --- | --- | --- |
-| `page` | number | 否 | `1` | 当前页 |
-| `pageSize` | number | 否 | `10` | 每页条数 |
 | `id` | number | 否 | 空 | 按回复 ID 精确查询 |
 | `postId` | number | 否 | 空 | 按帖子 ID 筛选 |
 | `keyword` | string | 否 | 空 | 按回复内容或所属帖子标题模糊搜索 |
 | `status` | number | 否 | 空 | 状态：`1` 正常，`0` 隐藏 |
 
-响应 `data`：分页对象，`list` 元素为 `ReplyVO`
+响应 `data`：数组，元素为 `ReplyVO`；管理端自行分页展示。
 
 ### 10.10 管理端获取帖子回复列表
 
@@ -1064,11 +1018,9 @@ GET /api/admin/posts/{postId}/replies
 
 | 参数 | 类型 | 必填 | 默认值 | 说明 |
 | --- | --- | --- | --- | --- |
-| `page` | number | 否 | `1` | 当前页 |
-| `pageSize` | number | 否 | `20` | 每页条数 |
 | `status` | number | 否 | 空 | 状态：`1` 正常，`0` 隐藏 |
 
-响应 `data`：分页对象，`list` 元素为 `ReplyVO`
+响应 `data`：数组，元素为 `ReplyVO`；管理端自行分页展示。
 
 ### 10.11 修改回复状态
 

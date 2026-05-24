@@ -18,7 +18,7 @@
 - 发帖会写入 mock 数组，但刷新后丢失；回帖只追加到当前详情页 `replies` 局部状态，离开页面后丢失；管理端状态修改也只影响内存数据。
 - 搜索框、排序按钮、部分筛选条件还只是 UI 或本地简化筛选，没有完全对应 API 契约。
 - 普通用户删除自己帖子、删除自己回复的 UI 还未实现。
-- 基础方案写的是 `/boards/:id`、`/posts/:id`，当前前端实际路由是 `/board/:id`、`/post/:id`。联调前需要统一口径。
+- 前端路由已统一为 `/boards/:id`、`/posts/:id`，后续文档、跳转和后端返回的 `href` 字段都按复数路径处理。
 
 整体判断：
 
@@ -70,11 +70,11 @@ npm run build
 | --- | --- | --- |
 | 没有真正 API client | 无法联调 | 先实现 `src/api/request.js` 和按模块 API service |
 | 页面直接依赖 mock | 替换成本高 | 每个页面改为调用 service，mock 只保留为备用数据源 |
-| 列表未使用服务端分页 | 数据多时不符合契约 | 切换为读取分页对象 `{ list, total, page, pageSize, totalPages }` |
+| 列表分页仍是本地逻辑 | 演示数据不多，可以接受 | 后端返回完整数组，前端继续本地分页展示 |
 | Header 搜索框未绑定行为 | 演示中搜索不可用 | 后端完成 `/api/posts?keyword=` 后再接入 |
 | 全部帖子/版块详情排序按钮未绑定 | UI 和实际行为不一致 | 接入 `/api/posts?sort=latest/newest/views` |
 | 用户删除帖子/回复 UI 缺失 | 基础功能未闭环 | 增加“删除自己的帖子/回复”按钮并调用 DELETE 接口 |
-| 路由单复数不统一 | 文档、跳转和后端返回 href 容易混乱 | 联调前统一到 `/posts/:id`、`/boards/:id`，或同步修改方案文档 |
+| 路由单复数已统一 | 需要后续保持一致 | 统一使用 `/posts/:id`、`/boards/:id` |
 | 管理端筛选不完整 | API 支持但 UI 未完全覆盖 | 帖子补 board/status 筛选，回复补 postId/status 或明确不做 |
 
 ## 3. 后端实现总目标
@@ -114,7 +114,6 @@ rewrite: path => path.replace(/^\/api/, '')
 backend/src/main/java/com/feiyang/bbs/
   common/
     Result.java
-    PageResult.java
     ErrorCode.java
     BusinessException.java
   config/
@@ -189,14 +188,7 @@ mybatis:
   - `message`
   - `data`
   - `timestamp`
-- `PageResult<T>`
-  - `list`
-  - `total`
-  - `page`
-  - `pageSize`
-  - `totalPages`
-  - `hasNext`
-  - `hasPrevious`
+- 列表接口直接在 `Result.data` 中返回数组，不要求后端实现 `PageResult<T>` 或服务端分页。
 - `ErrorCode`
   - 对齐 API 契约中的 `200`、`40000`、`40001`、`40002`、`40003`、`40004`、`40100`、`40300`、`40400`、`40900`、`50000`。
 - `BusinessException`
@@ -266,7 +258,7 @@ mybatis:
 - 登录返回 `{ user: UserVO }`，普通用户和管理员共用。
 - 密码字段 demo 阶段可以先明文对比，以兼容 `sql/data.sql`；若改 BCrypt，需要同步更新 seed 数据。
 - `GET /user/profile` 以 `X-User-Id` 为准，不从 query/body 传用户 ID。
-- `GET /user/replies` 返回分页对象，list 为 `UserReplyListItemVO`。
+- `GET /user/replies` 返回数组，元素为 `UserReplyListItemVO`；个人主页由前端本地分页。
 
 前端依赖：
 
@@ -297,12 +289,11 @@ mybatis:
 
 - 前台只返回 `status=1` 的版块和帖子。
 - `/posts` 支持：
-  - `page`
-  - `pageSize`
   - `boardId`
   - `userId`
   - `keyword`
   - `sort=latest|newest|views`
+- `/posts` 不做服务端分页，直接返回筛选和排序后的完整数组。
 - `GET /posts/{id}` 可顺手 `view_count + 1`，但返回值要和更新后的浏览量一致。
 - 发帖必须校验：
   - 登录用户存在。
@@ -315,7 +306,7 @@ mybatis:
 前端依赖：
 
 - 首页和版块页改为调用 `/api/boards`、`/api/posts?boardId=...`。
-- 全部帖子页改为服务端分页和排序。
+- 全部帖子页改为真实接口取全量数据，排序由后端按 `sort` 处理，分页仍由前端本地完成。
 - 发帖页改为 `POST /api/posts`，成功后跳转详情页。
 - 个人主页“我的发帖”改为 `/api/posts?userId=currentUser.id`。
 - 需要补“删除自己的帖子”按钮，可放在个人主页发帖列表或帖子详情页作者本人可见区域。
@@ -380,7 +371,7 @@ mybatis:
 - 版块删除建议等同停用，`status=0`。
 - 帖子删除建议等同隐藏，`status=0`。
 - 回复删除建议等同隐藏，`status=0`。
-- 管理端列表按 API 契约返回分页对象，前端不要再全量取回后本地分页。
+- 管理端列表直接返回筛选后的完整数组，前端继续本地分页展示。
 - 管理端统计至少返回契约字段：
   - `userCount`
   - `boardCount`
@@ -418,7 +409,7 @@ mybatis:
 - 管理员可以新建、修改、停用、恢复版块。
 - 管理员可以隐藏/恢复帖子。
 - 管理员可以隐藏/恢复回复。
-- 管理端分页返回结构和 `docs/API-CONTRACT.md` 一致。
+- 管理端列表返回数组，前端分页展示结果和筛选条件正确。
 
 ## 6. 前端联调改造计划
 
@@ -494,8 +485,7 @@ async function loadPosts() {
   errorMessage.value = ''
 
   try {
-    const page = await postApi.listPosts(params)
-    posts.value = page.list
+    posts.value = await postApi.listPosts(params)
   } catch (error) {
     errorMessage.value = error.message || '加载失败'
   } finally {
@@ -506,14 +496,14 @@ async function loadPosts() {
 
 ### 6.4 路由统一
 
-建议联调前把前端路由改成基础方案中的复数形式：
+前端路由已经改成基础方案中的复数形式：
 
 ```text
 /boards/:id
 /posts/:id
 ```
 
-并同步替换：
+已同步替换：
 
 - `frontend/src/router/index.js`
 - `BoardCard.vue`
@@ -522,9 +512,9 @@ async function loadPosts() {
 - `ProfileView.vue`
 - `AdminDashboardView.vue`
 - `forumViewModels.js` 中保留的 mock href
-- `docs/API-CONTRACT.md` 中已有 `/post/1` 示例，如决定统一复数也要更新
+- `docs/API-CONTRACT.md` 中的 `/posts/1` 示例
 
-如果时间紧，也可以保留当前 `/board/:id`、`/post/:id`，但后端返回的任何 `href` 字段和前端跳转必须一致。
+后端返回的任何 `href` 字段和前端跳转都必须继续使用复数路径。
 
 ### 6.5 mock 保留策略
 
@@ -605,7 +595,7 @@ rg "@/mock|../mock" frontend/src
 - 能连接 PostgreSQL。
 - `sql/schema.sql` 和 `sql/data.sql` 导入后可跑通。
 - 所有接口返回统一 `Result<T>`。
-- 所有列表接口返回统一分页结构。
+- 所有列表接口在 `Result.data` 中直接返回数组。
 - 所有写接口有基本参数校验。
 - 所有受保护接口读取并校验 `X-User-Id`、`X-User-Role`。
 - 普通用户和管理员权限边界正确。
@@ -614,15 +604,13 @@ rg "@/mock|../mock" frontend/src
 
 ## 10. 需要提前确认的问题
 
-1. 前端路由最终采用 `/posts/:id`、`/boards/:id`，还是保留当前 `/post/:id`、`/board/:id`？
-2. 后端 Controller 是否保留无 `/api` 前缀，并继续依赖 Vite proxy 去掉 `/api`？
-3. 密码是否保持明文 demo，还是现在就改 BCrypt？
-4. 管理端统计是否按前端 mock 扩展返回 `latestPost`、`latestReply` 和 `total*Count`？
-5. 管理端帖子/回复列表是否必须马上补全全部筛选 UI，还是先以当前 UI 字段完成联调？
+1. 后端 Controller 是否保留无 `/api` 前缀，并继续依赖 Vite proxy 去掉 `/api`？
+2. 密码是否保持明文 demo，还是现在就改 BCrypt？
+3. 管理端统计是否按前端 mock 扩展返回 `latestPost`、`latestReply` 和 `total*Count`？
+4. 管理端帖子/回复列表是否必须马上补全全部筛选 UI，还是先以当前 UI 字段完成联调？
 
 建议答案：
 
-- 路由统一到复数形式，符合基础方案。
 - 保留 Vite rewrite，后端无 `/api` 前缀，减少 Spring 配置。
 - 第一版保持明文密码，答辩前有时间再升级 BCrypt。
 - 统计接口返回扩展字段，降低前端改造量。
