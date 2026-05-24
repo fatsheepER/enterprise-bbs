@@ -170,7 +170,7 @@ function withAdminReplyMeta(reply) {
     ...withReplyMeta(reply),
     postTitle: post?.title ?? '未知帖子',
     postAuthorName: postAuthor?.nickname || postAuthor?.username || '未知用户',
-    href: `/post/${reply.postId}#reply-${reply.id}`,
+    href: `/posts/${reply.postId}#reply-${reply.id}`,
   }
 }
 
@@ -201,14 +201,14 @@ function withUserReplyMeta(reply) {
           id: parentReply.id,
           authorName: parentAuthor?.nickname || parentAuthor?.username || '未知用户',
           contentPreview: contentPreview(parentReply.content),
-          href: `/post/${reply.postId}#reply-${parentReply.id}`,
+          href: `/posts/${reply.postId}#reply-${parentReply.id}`,
         }
       : {
           type: 'post',
           id: post?.id ?? reply.postId,
           authorName: postAuthor?.nickname || postAuthor?.username || '未知用户',
           contentPreview: contentPreview(post?.content ?? ''),
-          href: `/post/${post?.id ?? reply.postId}`,
+          href: `/posts/${post?.id ?? reply.postId}`,
         },
     relativeTime: formatRelativeTime(reply.updatedAt),
   }

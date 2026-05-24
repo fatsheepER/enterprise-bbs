@@ -84,7 +84,7 @@ const latestRows = computed(() => [
         title: stats.latestPost.contentPreview,
         meta: `${stats.latestPost.title} · ${stats.latestPost.boardName} · ${stats.latestPost.authorName}`,
         time: stats.latestPost.updatedAt,
-        to: `/post/${stats.latestPost.id}`,
+        to: `/posts/${stats.latestPost.id}`,
       }
     : null,
   stats.latestReply

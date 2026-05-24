@@ -157,7 +157,7 @@ function formatDisplayDate(dateTime) {
               <div class="post-block__actions">
                 <RouterLink
                   class="reply-button profile-reply__view-button"
-                  :to="`/post/${reply.postId}#reply-${reply.id}`"
+                  :to="`/posts/${reply.postId}#reply-${reply.id}`"
                   :aria-label="`查看回复 #${reply.id}`"
                 >
                   <img class="reply-button__icon" :src="eyeIcon" alt="" />

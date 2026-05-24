@@ -87,12 +87,12 @@ const router = createRouter({
       component: AdminRepliesView,
     },
     {
-      path: '/board/:id',
+      path: '/boards/:id',
       name: 'board-detail',
       component: BoardDetailView,
     },
     {
-      path: '/post/:id',
+      path: '/posts/:id',
       name: 'post-detail',
       component: PostDetailView,
     },

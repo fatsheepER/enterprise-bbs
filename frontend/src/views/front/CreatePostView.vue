@@ -84,7 +84,7 @@ function submitPost() {
       user: authStore.currentUser,
     })
 
-    router.push(`/post/${post.id}`)
+    router.push(`/posts/${post.id}`)
   } catch (error) {
     submitError.value = error.message || '发布失败'
   }
