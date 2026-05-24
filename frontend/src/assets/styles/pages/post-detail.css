@@ -1,0 +1,95 @@
+.post-detail {
+  display: grid;
+  gap: 26px;
+  padding-bottom: 164px;
+}
+
+.post-detail__header {
+  display: grid;
+  align-items: start;
+  gap: 18px;
+}
+
+.post-detail__header .board-badge {
+  justify-self: start;
+}
+
+.post-detail__title {
+  max-width: 900px;
+  margin: 0;
+  color: #1d1d1f;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.12;
+}
+
+.post-detail__floating-actions {
+  position: fixed;
+  right: max(24px, calc((100vw - 800px) / 2 - 118px));
+  bottom: 92px;
+  z-index: 10;
+  display: flex;
+  gap: 10px;
+}
+
+.post-detail__floating-button {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: #e8e8ed;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+}
+
+.post-detail__floating-button:hover,
+.post-detail__floating-button:focus-visible {
+  background: #dedee3;
+}
+
+.post-detail__floating-icon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+.post-detail-empty {
+  border-radius: 9px;
+  background: #fff;
+  padding: 46px 52px;
+}
+
+.post-detail-empty__title {
+  margin: 0 0 10px;
+  font-size: 36px;
+  line-height: 1.14;
+}
+
+.post-detail-empty__message {
+  margin: 0 0 24px;
+  color: #6e6e73;
+  font-size: 17px;
+}
+
+.post-detail-empty__link {
+  display: inline-flex;
+  margin-bottom: 0;
+  background: #e8e8ed;
+  color: #1d1d1f;
+}
+
+@media (max-width: 640px) {
+  .post-detail {
+    padding-bottom: 188px;
+  }
+
+  .post-detail__title {
+    font-size: 30px;
+  }
+
+  .post-detail__floating-actions {
+    right: 18px;
+    bottom: 84px;
+  }
+}

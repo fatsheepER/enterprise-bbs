@@ -1,0 +1,5 @@
+.board-list,
+.post-list {
+  display: grid;
+  gap: 24px;
+}

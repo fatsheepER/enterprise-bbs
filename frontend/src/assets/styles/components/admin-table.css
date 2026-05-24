@@ -1,0 +1,120 @@
+.admin-table-wrap {
+  overflow: hidden;
+  border-radius: 9px;
+  background: #fff;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.admin-table th,
+.admin-table td {
+  border-bottom: 1px solid #d8d8dc;
+}
+
+.admin-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.admin-table__cell {
+  padding: 18px 14px;
+  color: #1d1d1f;
+  font-size: 14px;
+  line-height: 1.35;
+  text-align: left;
+  vertical-align: middle;
+}
+
+th.admin-table__cell {
+  height: 58px;
+  color: #6e6e73;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.admin-table__cell--center {
+  text-align: center;
+}
+
+.admin-table__cell--right {
+  text-align: right;
+}
+
+.admin-table__cell--actions {
+  width: 86px;
+  text-align: right;
+}
+
+.admin-table__row:hover {
+  background: #f9f9fb;
+}
+
+.admin-table__empty {
+  height: 112px;
+  padding: 0 24px;
+  color: #6e6e73;
+  font-size: 15px;
+  text-align: center;
+}
+
+.admin-table__status {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0 10px;
+  background: #eaf6ee;
+  color: #1e7d39;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.admin-table__status--disabled {
+  background: #fff4e8;
+  color: #a44800;
+}
+
+.admin-table__action {
+  min-height: 34px;
+  border: 0;
+  border-radius: 8px;
+  background: #1d1d1f;
+  padding: 0 13px;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.admin-table__action:hover,
+.admin-table__action:focus-visible {
+  background: #333336;
+  outline: none;
+}
+
+.admin-table__action--danger {
+  background: #b42318;
+}
+
+.admin-table__action--danger:hover,
+.admin-table__action--danger:focus-visible {
+  background: #8f1d14;
+}
+
+@media (max-width: 980px) {
+  .admin-table-wrap {
+    overflow-x: auto;
+  }
+
+  .admin-table {
+    min-width: 980px;
+  }
+}
