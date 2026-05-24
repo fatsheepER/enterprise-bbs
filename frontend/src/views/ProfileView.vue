@@ -44,9 +44,9 @@ function formatDisplayDate(dateTime) {
 <template>
   <section v-if="currentUser" class="profile-page">
     <article class="profile-hero">
-      <button class="profile-hero__settings" type="button" aria-label="设置">
+      <RouterLink class="profile-hero__settings" to="/profile/edit" aria-label="设置">
         <img class="profile-hero__settings-icon" :src="gearIcon" alt="" />
-      </button>
+      </RouterLink>
 
       <img class="profile-hero__avatar" :src="avatarSrc" alt="" />
 

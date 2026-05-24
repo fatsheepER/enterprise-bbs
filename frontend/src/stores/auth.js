@@ -38,7 +38,22 @@ function writeMockUsers(mockUsers) {
 }
 
 function allUsers() {
-  return [...users, ...readMockUsers()]
+  const userById = new Map(users.map((user) => [user.id, user]))
+
+  for (const mockUser of readMockUsers()) {
+    userById.set(mockUser.id, mockUser)
+  }
+
+  return [...userById.values()]
+}
+
+function upsertMockUser(user) {
+  const mockUsers = readMockUsers()
+  const nextMockUsers = mockUsers.some((item) => item.id === user.id)
+    ? mockUsers.map((item) => (item.id === user.id ? user : item))
+    : [...mockUsers, user]
+
+  writeMockUsers(nextMockUsers)
 }
 
 function formatTimestamp(date = new Date()) {
@@ -99,14 +114,69 @@ export const useAuthStore = defineStore('auth', () => {
       createdAt: now,
       updatedAt: now,
     }
-    const nextMockUsers = [...readMockUsers(), newUser]
-    writeMockUsers(nextMockUsers)
+    upsertMockUser(newUser)
 
     const safeUser = withoutPassword(newUser)
     localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(safeUser))
     currentUser.value = safeUser
 
     return safeUser
+  }
+
+  function updateProfile({ nickname, avatar, email, bio }) {
+    if (!currentUser.value?.id) {
+      throw new Error('请先登录')
+    }
+
+    const existingUser = allUsers().find((user) => user.id === currentUser.value.id)
+
+    if (!existingUser) {
+      throw new Error('用户不存在')
+    }
+
+    const updatedAt = formatTimestamp()
+    const updatedUser = {
+      ...existingUser,
+      nickname: nickname.trim(),
+      avatar: avatar?.trim() ?? '',
+      email: email.trim(),
+      bio: bio.trim(),
+      updatedAt,
+    }
+
+    upsertMockUser(updatedUser)
+
+    const safeUser = withoutPassword(updatedUser)
+    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(safeUser))
+    currentUser.value = safeUser
+
+    return safeUser
+  }
+
+  function changePassword({ oldPassword, newPassword }) {
+    if (!currentUser.value?.id) {
+      throw new Error('请先登录')
+    }
+
+    const existingUser = allUsers().find((user) => user.id === currentUser.value.id)
+
+    if (!existingUser) {
+      throw new Error('用户不存在')
+    }
+
+    if (existingUser.password !== oldPassword) {
+      throw new Error('旧密码错误')
+    }
+
+    const updatedUser = {
+      ...existingUser,
+      password: newPassword,
+      updatedAt: formatTimestamp(),
+    }
+
+    upsertMockUser(updatedUser)
+
+    return true
   }
 
   function logout() {
@@ -125,6 +195,8 @@ export const useAuthStore = defineStore('auth', () => {
     displayName,
     login,
     register,
+    updateProfile,
+    changePassword,
     logout,
     syncFromStorage,
   }

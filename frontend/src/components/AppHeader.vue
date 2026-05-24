@@ -108,7 +108,7 @@ onBeforeUnmount(() => {
                     个人资料
                   </RouterLink>
                   <span aria-hidden="true">|</span>
-                  <RouterLink to="/profile" role="menuitem" @click="closeMenu">
+                  <RouterLink to="/profile/edit" role="menuitem" @click="closeMenu">
                     编辑资料
                   </RouterLink>
                 </div>

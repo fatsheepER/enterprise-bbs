@@ -7,6 +7,7 @@ import PostsView from '../views/front/PostsView.vue'
 import LoginView from '../views/LoginView.vue'
 import PlaceholderView from '../views/PlaceholderView.vue'
 import ProfileView from '../views/ProfileView.vue'
+import ProfileEditView from '../views/ProfileEditView.vue'
 import RegisterView from '../views/RegisterView.vue'
 
 const router = createRouter({
@@ -50,6 +51,11 @@ const router = createRouter({
       path: '/profile',
       name: 'profile',
       component: ProfileView,
+    },
+    {
+      path: '/profile/edit',
+      name: 'profile-edit',
+      component: ProfileEditView,
     },
     {
       path: '/admin',
