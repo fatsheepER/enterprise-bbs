@@ -86,7 +86,7 @@
         UPDATE users
         SET nickname = COALESCE(#{nickname}, nickname),
             avatar = COALESCE(#{avatar}, avatar),
-            email = #{email},
+            email = COALESCE(#{email}, email),
             bio = COALESCE(#{bio}, bio),
             updated_at = CURRENT_TIMESTAMP
         WHERE id = #{id}
