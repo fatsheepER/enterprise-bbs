@@ -834,6 +834,12 @@ GET /api/admin/dashboard/stats
 }
 ```
 
+字段语义：
+
+- `userCount`：用户总数；当前 `users` 表没有 `status` 字段，因此不区分启用和停用。
+- `boardCount`、`postCount`、`replyCount`：`status=1` 的启用/正常数量。
+- `disabledBoardCount`、`hiddenPostCount`、`hiddenReplyCount`：`status=0` 的停用/隐藏数量。
+
 ### 10.2 管理端获取版块列表
 
 ```text
@@ -1019,13 +1025,34 @@ DELETE /api/admin/posts/{id}
 true
 ```
 
-### 10.9 管理端获取帖子回复列表
+### 10.9 管理端获取全部回复列表
+
+```text
+GET /api/admin/replies
+```
+
+管理员可查看全部正常和隐藏回复，用于独立的回复管理页。
+
+查询参数：
+
+| 参数 | 类型 | 必填 | 默认值 | 说明 |
+| --- | --- | --- | --- | --- |
+| `page` | number | 否 | `1` | 当前页 |
+| `pageSize` | number | 否 | `10` | 每页条数 |
+| `id` | number | 否 | 空 | 按回复 ID 精确查询 |
+| `postId` | number | 否 | 空 | 按帖子 ID 筛选 |
+| `keyword` | string | 否 | 空 | 按回复内容或所属帖子标题模糊搜索 |
+| `status` | number | 否 | 空 | 状态：`1` 正常，`0` 隐藏 |
+
+响应 `data`：分页对象，`list` 元素为 `ReplyVO`
+
+### 10.10 管理端获取帖子回复列表
 
 ```text
 GET /api/admin/posts/{postId}/replies
 ```
 
-管理员可查看某个帖子下的正常和隐藏回复，用于在帖子管理页中管理回复状态。
+管理员可查看某个帖子下的正常和隐藏回复，用于帖子详情或帖子管理上下文。
 
 路径参数：
 
@@ -1043,7 +1070,7 @@ GET /api/admin/posts/{postId}/replies
 
 响应 `data`：分页对象，`list` 元素为 `ReplyVO`
 
-### 10.10 修改回复状态
+### 10.11 修改回复状态
 
 ```text
 PUT /api/admin/replies/{id}/status
@@ -1073,7 +1100,7 @@ PUT /api/admin/replies/{id}/status
 
 响应 `data`：`ReplyVO`
 
-### 10.11 管理员删除回复
+### 10.12 管理员删除回复
 
 ```text
 DELETE /api/admin/replies/{id}
@@ -1197,6 +1224,7 @@ true
 | 管理员 | `GET` | `/api/admin/posts` | 管理员 | 管理端帖子列表 |
 | 管理员 | `PUT` | `/api/admin/posts/{id}/status` | 管理员 | 修改帖子状态 |
 | 管理员 | `DELETE` | `/api/admin/posts/{id}` | 管理员 | 管理员删除或隐藏帖子 |
+| 管理员 | `GET` | `/api/admin/replies` | 管理员 | 管理端全部回复列表 |
 | 管理员 | `GET` | `/api/admin/posts/{postId}/replies` | 管理员 | 管理端帖子回复列表 |
 | 管理员 | `PUT` | `/api/admin/replies/{id}/status` | 管理员 | 修改回复状态 |
 | 管理员 | `DELETE` | `/api/admin/replies/{id}` | 管理员 | 管理员删除或隐藏回复 |
