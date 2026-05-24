@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.feiyang.bbs.mapper.UserMapper">
+    <resultMap id="UserVOResultMap" type="com.feiyang.bbs.vo.UserVO">
+        <id property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="nickname" column="nickname"/>
+        <result property="avatar" column="avatar"/>
+        <result property="email" column="email"/>
+        <result property="bio" column="bio"/>
+        <result property="role" column="role"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <resultMap id="UserReplyListItemVOResultMap" type="com.feiyang.bbs.vo.UserReplyListItemVO">
+        <id property="id" column="id"/>
+        <result property="postId" column="post_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="authorName" column="author_name"/>
+        <result property="authorAvatar" column="author_avatar"/>
+        <result property="authorRole" column="author_role"/>
+        <result property="parentReplyId" column="parent_reply_id"/>
+        <result property="content" column="content"/>
+        <result property="status" column="status"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="postTitle" column="post_title"/>
+        <result property="postContentPreview" column="post_content_preview"/>
+        <result property="boardId" column="board_id"/>
+        <result property="boardName" column="board_name"/>
+        <result property="boardColorHex" column="board_color_hex"/>
+        <association property="reference" javaType="com.feiyang.bbs.vo.ReplyReferenceVO">
+            <result property="type" column="reference_type"/>
+            <result property="id" column="reference_id"/>
+            <result property="authorName" column="reference_author_name"/>
+            <result property="contentPreview" column="reference_content_preview"/>
+            <result property="href" column="reference_href"/>
+        </association>
+    </resultMap>
+
+    <sql id="UserColumns">
+        id, username, password, nickname, avatar, email, bio, role, created_at, updated_at
+    </sql>
+
+    <insert id="insert" parameterType="com.feiyang.bbs.entity.User" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO users (username, password, nickname, avatar, email, bio, role)
+        VALUES (
+            #{username},
+            #{password},
+            COALESCE(NULLIF(#{nickname}, ''), #{username}),
+            COALESCE(#{avatar}, ''),
+            #{email},
+            COALESCE(#{bio}, ''),
+            COALESCE(#{role}, 'USER')
+        )
+    </insert>
+
+    <select id="findById" resultType="com.feiyang.bbs.entity.User">
+        SELECT <include refid="UserColumns"/>
+        FROM users
+        WHERE id = #{id}
+    </select>
+
+    <select id="findByUsername" resultType="com.feiyang.bbs.entity.User">
+        SELECT <include refid="UserColumns"/>
+        FROM users
+        WHERE username = #{username}
+    </select>
+
+    <select id="selectUserVOById" resultMap="UserVOResultMap">
+        SELECT id, username, nickname, avatar, email, bio, role, created_at, updated_at
+        FROM users
+        WHERE id = #{id}
+    </select>
+
+    <select id="countByUsername" resultType="int">
+        SELECT COUNT(*)
+        FROM users
+        WHERE username = #{username}
+    </select>
+
+    <update id="updateProfile" parameterType="com.feiyang.bbs.entity.User">
+        UPDATE users
+        SET nickname = COALESCE(#{nickname}, nickname),
+            avatar = COALESCE(#{avatar}, avatar),
+            email = #{email},
+            bio = COALESCE(#{bio}, bio),
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+
+    <update id="updatePassword">
+        UPDATE users
+        SET password = #{password},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+
+    <select id="selectUserReplies" resultMap="UserReplyListItemVOResultMap">
+        SELECT
+            r.id,
+            r.post_id,
+            r.user_id,
+            COALESCE(NULLIF(u.nickname, ''), u.username) AS author_name,
+            u.avatar AS author_avatar,
+            u.role AS author_role,
+            r.parent_reply_id,
+            r.content,
+            r.status,
+            r.created_at,
+            r.updated_at,
+            p.title AS post_title,
+            CASE
+                WHEN length(p.content) > 80 THEN substring(p.content from 1 for 80) || '...'
+                ELSE p.content
+            END AS post_content_preview,
+            b.id AS board_id,
+            b.name AS board_name,
+            b.color_hex AS board_color_hex,
+            CASE WHEN r.parent_reply_id IS NULL THEN 'post' ELSE 'reply' END AS reference_type,
+            COALESCE(pr.id, p.id) AS reference_id,
+            CASE
+                WHEN r.parent_reply_id IS NULL THEN COALESCE(NULLIF(pu.nickname, ''), pu.username)
+                ELSE COALESCE(NULLIF(pru.nickname, ''), pru.username)
+            END AS reference_author_name,
+            CASE
+                WHEN r.parent_reply_id IS NULL AND length(p.content) > 80 THEN substring(p.content from 1 for 80) || '...'
+                WHEN r.parent_reply_id IS NULL THEN p.content
+                WHEN length(pr.content) > 80 THEN substring(pr.content from 1 for 80) || '...'
+                ELSE pr.content
+            END AS reference_content_preview,
+            '/posts/' || r.post_id AS reference_href
+        FROM replies r
+        JOIN users u ON u.id = r.user_id
+        JOIN posts p ON p.id = r.post_id
+        JOIN users pu ON pu.id = p.user_id
+        JOIN boards b ON b.id = p.board_id
+        LEFT JOIN replies pr ON pr.id = r.parent_reply_id
+        LEFT JOIN users pru ON pru.id = pr.user_id
+        WHERE r.user_id = #{userId}
+          AND r.status = 1
+          AND p.status = 1
+        ORDER BY r.created_at DESC, r.id DESC
+    </select>
+</mapper>

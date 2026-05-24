@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.feiyang.bbs.mapper.AdminMapper">
+    <select id="selectDashboardStats" resultType="com.feiyang.bbs.vo.AdminDashboardStatsVO">
+        SELECT
+            (SELECT COUNT(*) FROM users)::int AS user_count,
+            (SELECT COUNT(*) FROM boards WHERE status = 1)::int AS board_count,
+            (SELECT COUNT(*) FROM boards WHERE status = 0)::int AS disabled_board_count,
+            (SELECT COUNT(*) FROM posts WHERE status = 1)::int AS post_count,
+            (SELECT COUNT(*) FROM posts WHERE status = 0)::int AS hidden_post_count,
+            (SELECT COUNT(*) FROM replies WHERE status = 1)::int AS reply_count,
+            (SELECT COUNT(*) FROM replies WHERE status = 0)::int AS hidden_reply_count
+    </select>
+</mapper>
