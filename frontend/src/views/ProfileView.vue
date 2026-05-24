@@ -48,7 +48,9 @@ function formatDisplayDate(dateTime) {
         <img class="profile-hero__settings-icon" :src="gearIcon" alt="" />
       </RouterLink>
 
-      <img class="profile-hero__avatar" :src="avatarSrc" alt="" />
+      <div class="profile-hero__avatar" aria-hidden="true">
+        <img class="profile-hero__avatar-image" :src="avatarSrc" alt="" />
+      </div>
 
       <div class="profile-hero__body">
         <div class="profile-hero__title-row">

@@ -100,7 +100,9 @@ onBeforeUnmount(() => {
 
           <div v-else-if="isMenuOpen" class="account-menu account-menu--user" role="menu">
             <div class="account-menu__profile">
-              <img class="account-menu__avatar" :src="personPlaceholder" alt="" />
+              <div class="account-menu__avatar" aria-hidden="true">
+                <img class="account-menu__avatar-image" :src="personPlaceholder" alt="" />
+              </div>
               <div class="account-menu__profile-main">
                 <strong class="account-menu__name">{{ authStore.displayName }}</strong>
                 <div class="account-menu__links">

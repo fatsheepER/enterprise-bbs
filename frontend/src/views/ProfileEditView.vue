@@ -174,7 +174,9 @@ function submitProfile() {
         </div>
 
         <div class="profile-edit-avatar">
-          <img class="profile-edit-avatar__image" :src="avatarSrc" alt="" />
+          <div class="profile-edit-avatar__preview" aria-hidden="true">
+            <img class="profile-edit-avatar__image" :src="avatarSrc" alt="" />
+          </div>
           <button class="profile-edit-avatar__button" type="button" disabled>更换头像</button>
         </div>
       </section>
@@ -287,5 +289,16 @@ function submitProfile() {
         </div>
       </section>
     </form>
+
+    <div class="profile-edit-footer">
+      <button
+        class="profile-edit-header__save"
+        type="button"
+        :disabled="!canSave"
+        @click="submitProfile"
+      >
+        保存
+      </button>
+    </div>
   </section>
 </template>
