@@ -28,6 +28,10 @@ function signOut() {
   }
 }
 
+function goToCreatePost() {
+  router.push('/create-post')
+}
+
 function handleDocumentPointerDown(event) {
   if (!accountMenuRef.value?.contains(event.target)) {
     closeMenu()
@@ -67,7 +71,7 @@ onBeforeUnmount(() => {
       </div>
 
       <div class="app-header__actions">
-        <button class="post-button" type="button">发帖</button>
+        <button class="post-button" type="button" @click="goToCreatePost">发帖</button>
 
         <div ref="accountMenuRef" class="account-menu-anchor">
           <button
