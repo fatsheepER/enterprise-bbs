@@ -12,6 +12,14 @@ function byId(items) {
 const boardById = byId(boards)
 const userById = byId(users)
 
+function countByStatus(items, status) {
+  return items.filter((item) => item.status === status).length
+}
+
+function latestByUpdatedAt(items) {
+  return items.toSorted((left, right) => new Date(right.updatedAt) - new Date(left.updatedAt))[0]
+}
+
 function formatTimestamp(date = new Date()) {
   const pad = (value) => String(value).padStart(2, '0')
 
@@ -83,6 +91,18 @@ function withReplyMeta(reply) {
   }
 }
 
+function withAdminReplyMeta(reply) {
+  const post = posts.find((item) => item.id === reply.postId)
+  const postAuthor = post ? userById.get(post.userId) : null
+
+  return {
+    ...withReplyMeta(reply),
+    postTitle: post?.title ?? '未知帖子',
+    postAuthorName: postAuthor?.nickname || postAuthor?.username || '未知用户',
+    href: `/post/${reply.postId}#reply-${reply.id}`,
+  }
+}
+
 function withUserReplyMeta(reply) {
   const post = posts.find((item) => item.id === reply.postId && item.status === 1)
   const board = post ? boardById.get(post.boardId) : null
@@ -137,6 +157,26 @@ export function visibleBoards() {
         latestPost: boardPosts[0] ?? null,
       }
     })
+}
+
+export function adminDashboardStats() {
+  const latestPost = latestByUpdatedAt(posts.filter((post) => post.status === 1))
+  const latestReply = latestByUpdatedAt(replies.filter((reply) => reply.status === 1))
+
+  return {
+    userCount: users.length,
+    boardCount: countByStatus(boards, 1),
+    totalBoardCount: boards.length,
+    disabledBoardCount: countByStatus(boards, 0),
+    postCount: countByStatus(posts, 1),
+    totalPostCount: posts.length,
+    hiddenPostCount: countByStatus(posts, 0),
+    replyCount: countByStatus(replies, 1),
+    totalReplyCount: replies.length,
+    hiddenReplyCount: countByStatus(replies, 0),
+    latestPost: latestPost ? withPostMeta(latestPost) : null,
+    latestReply: latestReply ? withAdminReplyMeta(latestReply) : null,
+  }
 }
 
 export function visiblePosts({ boardId, userId } = {}) {

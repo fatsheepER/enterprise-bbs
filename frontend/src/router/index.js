@@ -1,12 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
+import AdminDashboardView from '@/views/admin/AdminDashboardView.vue'
 import BoardDetailView from '@/views/front/BoardDetailView.vue'
 import BoardsOverviewView from '@/views/front/BoardsOverviewView.vue'
 import CreatePostView from '@/views/front/CreatePostView.vue'
 import PostDetailView from '@/views/front/PostDetailView.vue'
 import PostsView from '@/views/front/PostsView.vue'
 import LoginView from '@/views/front/LoginView.vue'
-import PlaceholderView from '@/views/front/PlaceholderView.vue'
 import ProfileView from '@/views/front/ProfileView.vue'
 import ProfileEditView from '@/views/front/ProfileEditView.vue'
 import RegisterView from '@/views/front/RegisterView.vue'
@@ -66,11 +66,7 @@ const router = createRouter({
     {
       path: '/admin',
       name: 'admin',
-      component: PlaceholderView,
-      props: {
-        title: '控制台',
-        description: '管理员版块和帖子管理入口将在后续实现。',
-      },
+      component: AdminDashboardView,
     },
     {
       path: '/board/:id',
