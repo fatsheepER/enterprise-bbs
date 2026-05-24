@@ -2,9 +2,9 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 
-import boardIcon from '../../assets/board-placeholder.svg'
-import PostTable from '../../components/PostTable.vue'
-import { visibleBoards, visiblePosts } from '../../mock/forumViewModels'
+import boardIcon from '@/assets/board-placeholder.svg'
+import PostTable from '@/components/PostTable.vue'
+import { visibleBoards, visiblePosts } from '@/mock/forumViewModels'
 
 const route = useRoute()
 const boards = visibleBoards()

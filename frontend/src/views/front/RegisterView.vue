@@ -2,8 +2,8 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
-import personPlaceholder from '../assets/person-placeholder.svg'
-import { useAuthStore } from '../stores/auth'
+import personPlaceholder from '@/assets/person-placeholder.svg'
+import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
 const router = useRouter()

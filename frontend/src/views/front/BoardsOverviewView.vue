@@ -1,7 +1,7 @@
 <script setup>
-import BoardCard from '../../components/BoardCard.vue'
-import OverviewTabs from '../../components/OverviewTabs.vue'
-import { visibleBoards, visiblePosts } from '../../mock/forumViewModels'
+import BoardCard from '@/components/BoardCard.vue'
+import OverviewTabs from '@/components/OverviewTabs.vue'
+import { visibleBoards, visiblePosts } from '@/mock/forumViewModels'
 
 const boards = visibleBoards()
 const posts = visiblePosts()

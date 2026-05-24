@@ -1,6 +1,6 @@
 <script setup>
-import PostTable from '../../components/PostTable.vue'
-import { visiblePosts } from '../../mock/forumViewModels'
+import PostTable from '@/components/PostTable.vue'
+import { visiblePosts } from '@/mock/forumViewModels'
 
 const posts = visiblePosts()
 </script>

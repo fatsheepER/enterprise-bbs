@@ -2,12 +2,12 @@
 import { computed, ref, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import PostTable from '../components/PostTable.vue'
-import eyeIcon from '../assets/eye.svg'
-import gearIcon from '../assets/gear.svg'
-import personPlaceholder from '../assets/person-placeholder.svg'
-import { userReplies, visiblePosts } from '../mock/forumViewModels'
-import { useAuthStore } from '../stores/auth'
+import PostTable from '@/components/PostTable.vue'
+import eyeIcon from '@/assets/eye.svg'
+import gearIcon from '@/assets/gear.svg'
+import personPlaceholder from '@/assets/person-placeholder.svg'
+import { userReplies, visiblePosts } from '@/mock/forumViewModels'
+import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
 const route = useRoute()

@@ -2,8 +2,8 @@
 import { computed, reactive, watch, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import personPlaceholder from '../assets/person-placeholder.svg'
-import { useAuthStore } from '../stores/auth'
+import personPlaceholder from '@/assets/person-placeholder.svg'
+import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
 const route = useRoute()

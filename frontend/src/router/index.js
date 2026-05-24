@@ -1,14 +1,14 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-import BoardDetailView from '../views/front/BoardDetailView.vue'
-import BoardsOverviewView from '../views/front/BoardsOverviewView.vue'
-import PostDetailView from '../views/front/PostDetailView.vue'
-import PostsView from '../views/front/PostsView.vue'
-import LoginView from '../views/LoginView.vue'
-import PlaceholderView from '../views/PlaceholderView.vue'
-import ProfileView from '../views/ProfileView.vue'
-import ProfileEditView from '../views/ProfileEditView.vue'
-import RegisterView from '../views/RegisterView.vue'
+import BoardDetailView from '@/views/front/BoardDetailView.vue'
+import BoardsOverviewView from '@/views/front/BoardsOverviewView.vue'
+import PostDetailView from '@/views/front/PostDetailView.vue'
+import PostsView from '@/views/front/PostsView.vue'
+import LoginView from '@/views/front/LoginView.vue'
+import PlaceholderView from '@/views/front/PlaceholderView.vue'
+import ProfileView from '@/views/front/ProfileView.vue'
+import ProfileEditView from '@/views/front/ProfileEditView.vue'
+import RegisterView from '@/views/front/RegisterView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

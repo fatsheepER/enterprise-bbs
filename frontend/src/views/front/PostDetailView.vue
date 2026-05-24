@@ -2,11 +2,11 @@
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import arrowUpIcon from '../../assets/arrowshape.up.svg'
-import messageIcon from '../../assets/message.svg'
-import personPlaceholder from '../../assets/person-placeholder.svg'
-import { postDetail, postReplies } from '../../mock/forumViewModels'
-import { useAuthStore } from '../../stores/auth'
+import arrowUpIcon from '@/assets/arrowshape.up.svg'
+import messageIcon from '@/assets/message.svg'
+import personPlaceholder from '@/assets/person-placeholder.svg'
+import { postDetail, postReplies } from '@/mock/forumViewModels'
+import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
 const router = useRouter()
