@@ -51,6 +51,61 @@ function matchesOptionalId(value, expected) {
   return expected == null || value === Number(expected)
 }
 
+function normalizeBoardPayload(payload) {
+  const name = payload.name.trim()
+  const description = payload.description?.trim() ?? ''
+  const colorHex = payload.colorHex?.trim() || '#007aff'
+  const sortOrder = Number(payload.sortOrder) || 0
+  const status = Number(payload.status) === 0 ? 0 : 1
+
+  if (!name) {
+    throw new Error('版块名称不能为空')
+  }
+
+  return {
+    name,
+    description,
+    colorHex,
+    sortOrder,
+    status,
+  }
+}
+
+function boardPostCount(boardId) {
+  return posts.filter((post) => post.boardId === boardId && post.status === 1).length
+}
+
+function boardReplyCount(boardId) {
+  const boardPostIds = new Set(
+    posts.filter((post) => post.boardId === boardId && post.status === 1).map((post) => post.id),
+  )
+
+  return replies.filter((reply) => boardPostIds.has(reply.postId) && reply.status === 1).length
+}
+
+function boardLatestPost(boardId) {
+  const latestPost = latestByUpdatedAt(
+    posts.filter((post) => post.boardId === boardId && post.status === 1),
+  )
+
+  return latestPost
+    ? {
+        id: latestPost.id,
+        title: latestPost.title,
+        updatedAt: latestPost.updatedAt,
+      }
+    : null
+}
+
+function withBoardMeta(board) {
+  return {
+    ...board,
+    postCount: boardPostCount(board.id),
+    replyCount: boardReplyCount(board.id),
+    latestPost: boardLatestPost(board.id),
+  }
+}
+
 function withPostMeta(post) {
   const board = boardById.get(post.boardId)
   const author = userById.get(post.userId)
@@ -147,16 +202,62 @@ export function visibleBoards() {
   return boards
     .filter((board) => board.status === 1)
     .toSorted((left, right) => left.sortOrder - right.sortOrder || left.id - right.id)
-    .map((board) => {
-      const boardPosts = visiblePosts().filter((post) => post.boardId === board.id)
+    .map(withBoardMeta)
+}
 
-      return {
-        ...board,
-        postCount: boardPosts.length,
-        replyCount: boardPosts.reduce((total, post) => total + post.replyCount, 0),
-        latestPost: boardPosts[0] ?? null,
-      }
-    })
+export function adminBoards({ id, keyword, status } = {}) {
+  const normalizedKeyword = keyword?.trim().toLowerCase() ?? ''
+  const normalizedStatus = status === '' || status == null ? null : Number(status)
+
+  return boards
+    .filter((board) => matchesOptionalId(board.id, id))
+    .filter((board) => !normalizedKeyword || board.name.toLowerCase().includes(normalizedKeyword))
+    .filter((board) => normalizedStatus == null || board.status === normalizedStatus)
+    .toSorted((left, right) => left.sortOrder - right.sortOrder || left.id - right.id)
+    .map(withBoardMeta)
+}
+
+export function createAdminBoard(payload) {
+  const normalizedBoard = normalizeBoardPayload(payload)
+
+  if (boards.some((board) => board.name === normalizedBoard.name)) {
+    throw new Error('版块名称已存在')
+  }
+
+  const now = formatTimestamp()
+  const board = {
+    id: Math.max(0, ...boards.map((item) => item.id)) + 1,
+    ...normalizedBoard,
+    createdAt: now,
+    updatedAt: now,
+  }
+
+  boards.push(board)
+  boardById.set(board.id, board)
+
+  return withBoardMeta(board)
+}
+
+export function updateAdminBoard(id, payload) {
+  const board = boards.find((item) => item.id === Number(id))
+
+  if (!board) {
+    throw new Error('版块不存在')
+  }
+
+  const normalizedBoard = normalizeBoardPayload(payload)
+
+  if (boards.some((item) => item.id !== board.id && item.name === normalizedBoard.name)) {
+    throw new Error('版块名称已存在')
+  }
+
+  Object.assign(board, normalizedBoard, {
+    updatedAt: formatTimestamp(),
+  })
+
+  boardById.set(board.id, board)
+
+  return withBoardMeta(board)
 }
 
 export function adminDashboardStats() {

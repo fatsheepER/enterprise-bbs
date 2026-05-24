@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
+import AdminBoardsView from '@/views/admin/AdminBoardsView.vue'
 import AdminDashboardView from '@/views/admin/AdminDashboardView.vue'
 import BoardDetailView from '@/views/front/BoardDetailView.vue'
 import BoardsOverviewView from '@/views/front/BoardsOverviewView.vue'
@@ -67,6 +68,11 @@ const router = createRouter({
       path: '/admin',
       name: 'admin',
       component: AdminDashboardView,
+    },
+    {
+      path: '/admin/boards',
+      name: 'admin-boards',
+      component: AdminBoardsView,
     },
     {
       path: '/board/:id',
