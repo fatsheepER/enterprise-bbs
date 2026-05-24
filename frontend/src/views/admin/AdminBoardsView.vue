@@ -1,9 +1,13 @@
 <script setup>
-import { computed, reactive, ref, watchEffect } from 'vue'
+import { computed, onMounted, reactive, ref, watch, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
+import {
+  createAdminBoard,
+  getAdminBoards,
+  updateAdminBoard,
+} from '@/api/admin'
 import AdminTable from '@/components/AdminTable.vue'
-import { adminBoards, createAdminBoard, updateAdminBoard } from '@/mock/forumViewModels'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
@@ -12,7 +16,7 @@ const router = useRouter()
 
 const idQuery = ref('')
 const keywordQuery = ref('')
-const refreshKey = ref(0)
+const boards = ref([])
 const isDialogOpen = ref(false)
 const editingBoardId = ref(null)
 const formError = ref('')
@@ -60,27 +64,31 @@ const normalizedIdQuery = computed(() => {
 const boardFilters = computed(() => ({
   id: normalizedIdQuery.value,
   keyword: keywordQuery.value,
-  refreshKey: refreshKey.value,
 }))
 
-const filteredBoards = computed(() => {
+async function loadBoards() {
+  if (!authStore.isAdmin) {
+    return
+  }
+
   const { id, keyword } = boardFilters.value
 
-  return adminBoards({
+  boards.value = await getAdminBoards({
     id,
     keyword,
   })
-})
+}
 
-const activeBoards = computed(() => filteredBoards.value.filter((board) => board.status === 1))
-const disabledBoards = computed(() => filteredBoards.value.filter((board) => board.status === 0))
+onMounted(loadBoards)
+watch([idQuery, keywordQuery], loadBoards)
+
+const activeBoards = computed(() => boards.value.filter((board) => board.status === 1))
+const disabledBoards = computed(() => boards.value.filter((board) => board.status === 0))
 const dialogTitle = computed(() => (editingBoardId.value ? '管理版块' : '新建版块'))
 const submitText = computed(() => (editingBoardId.value ? '保存修改' : '创建版块'))
 
 function nextSortOrder() {
-  const boards = adminBoards()
-
-  return Math.max(0, ...boards.map((board) => Number(board.sortOrder) || 0)) + 1
+  return Math.max(0, ...boards.value.map((board) => Number(board.sortOrder) || 0)) + 1
 }
 
 function resetForm() {
@@ -114,7 +122,7 @@ function closeDialog() {
   formError.value = ''
 }
 
-function saveBoard() {
+async function saveBoard() {
   try {
     const payload = {
       name: form.name,
@@ -125,12 +133,12 @@ function saveBoard() {
     }
 
     if (editingBoardId.value) {
-      updateAdminBoard(editingBoardId.value, payload)
+      await updateAdminBoard(editingBoardId.value, payload)
     } else {
-      createAdminBoard(payload)
+      await createAdminBoard(payload)
     }
 
-    refreshKey.value += 1
+    await loadBoards()
     closeDialog()
   } catch (error) {
     formError.value = error.message

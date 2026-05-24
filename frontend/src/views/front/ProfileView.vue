@@ -2,18 +2,19 @@
 import { computed, onMounted, ref, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
+import { getPosts } from '@/api/posts'
 import PostTable from '@/components/PostTable.vue'
 import eyeIcon from '@/assets/eye.svg'
 import gearIcon from '@/assets/gear.svg'
 import personPlaceholder from '@/assets/person-placeholder.svg'
 import { getUserReplies } from '@/api/user'
-import { visiblePosts } from '@/mock/forumViewModels'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
 const route = useRoute()
 const router = useRouter()
 const activeTab = ref('posts')
+const userPosts = ref([])
 const userReplyList = ref([])
 
 watchEffect(() => {
@@ -30,16 +31,18 @@ const displayName = computed(
   () => currentUser.value?.nickname || currentUser.value?.username || '当前用户',
 )
 const avatarSrc = computed(() => currentUser.value?.avatar || personPlaceholder)
-const userPosts = computed(() =>
-  currentUser.value ? visiblePosts({ userId: currentUser.value.id }) : [],
-)
-
 onMounted(async () => {
   if (!currentUser.value) {
     return
   }
 
-  userReplyList.value = await getUserReplies()
+  const [postList, replyList] = await Promise.all([
+    getPosts({ userId: currentUser.value.id }),
+    getUserReplies(),
+  ])
+
+  userPosts.value = postList
+  userReplyList.value = replyList
 })
 
 function formatDisplayDate(dateTime) {

@@ -1,14 +1,27 @@
 <script setup>
-import { computed, watchEffect } from 'vue'
+import { computed, onMounted, ref, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import { adminDashboardStats } from '@/mock/forumViewModels'
+import { getAdminDashboardStats, getAdminPosts, getAdminReplies } from '@/api/admin'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
 const route = useRoute()
 const router = useRouter()
-const stats = adminDashboardStats()
+const stats = ref({
+  userCount: 0,
+  boardCount: 0,
+  disabledBoardCount: 0,
+  postCount: 0,
+  hiddenPostCount: 0,
+  replyCount: 0,
+  hiddenReplyCount: 0,
+  totalBoardCount: 0,
+  totalPostCount: 0,
+  totalReplyCount: 0,
+})
+const latestPost = ref(null)
+const latestReply = ref(null)
 
 watchEffect(() => {
   if (!authStore.isLoggedIn) {
@@ -25,14 +38,30 @@ watchEffect(() => {
   }
 })
 
+onMounted(async () => {
+  if (!authStore.isAdmin) {
+    return
+  }
+
+  const [dashboardStats, postRows, replyRows] = await Promise.all([
+    getAdminDashboardStats(),
+    getAdminPosts({ status: 1 }),
+    getAdminReplies({ status: 1 }),
+  ])
+
+  stats.value = dashboardStats
+  latestPost.value = postRows[0] ?? null
+  latestReply.value = replyRows[0] ?? null
+})
+
 const overviewRows = computed(() => [
   {
     title: '版块',
     description: '查看全部板块并停用不需要展示的板块。',
     totalLabel: '全部版块',
-    totalValue: stats.totalBoardCount,
+    totalValue: stats.value.totalBoardCount,
     flaggedLabel: '已停用',
-    flaggedValue: stats.disabledBoardCount,
+    flaggedValue: stats.value.disabledBoardCount,
     to: '/admin/boards',
     action: '管理版块',
   },
@@ -40,9 +69,9 @@ const overviewRows = computed(() => [
     title: '帖子',
     description: '检查全部帖子并隐藏不适合展示的帖子。',
     totalLabel: '全部帖子',
-    totalValue: stats.totalPostCount,
+    totalValue: stats.value.totalPostCount,
     flaggedLabel: '已隐藏',
-    flaggedValue: stats.hiddenPostCount,
+    flaggedValue: stats.value.hiddenPostCount,
     to: '/admin/posts',
     action: '管理帖子',
   },
@@ -50,9 +79,9 @@ const overviewRows = computed(() => [
     title: '回复',
     description: '查看全部回复并隐藏不适合展示的回复。',
     totalLabel: '全部回复',
-    totalValue: stats.totalReplyCount,
+    totalValue: stats.value.totalReplyCount,
     flaggedLabel: '已隐藏',
-    flaggedValue: stats.hiddenReplyCount,
+    flaggedValue: stats.value.hiddenReplyCount,
     to: '/admin/replies',
     action: '管理回复',
   },
@@ -61,39 +90,39 @@ const overviewRows = computed(() => [
 const siteStats = computed(() => [
   {
     label: '用户',
-    value: stats.userCount,
+    value: stats.value.userCount,
   },
   {
     label: '版块',
-    value: stats.boardCount,
+    value: stats.value.boardCount,
   },
   {
     label: '帖子',
-    value: stats.postCount,
+    value: stats.value.postCount,
   },
   {
     label: '回复',
-    value: stats.replyCount,
+    value: stats.value.replyCount,
   },
 ])
 
 const latestRows = computed(() => [
-  stats.latestPost
+  latestPost.value
     ? {
         type: '最新帖子',
-        title: stats.latestPost.contentPreview,
-        meta: `${stats.latestPost.title} · ${stats.latestPost.boardName} · ${stats.latestPost.authorName}`,
-        time: stats.latestPost.updatedAt,
-        to: `/posts/${stats.latestPost.id}`,
+        title: latestPost.value.contentPreview,
+        meta: `${latestPost.value.title} · ${latestPost.value.boardName} · ${latestPost.value.authorName}`,
+        time: latestPost.value.updatedAt,
+        to: `/posts/${latestPost.value.id}`,
       }
     : null,
-  stats.latestReply
+  latestReply.value
     ? {
         type: '最新回复',
-        title: stats.latestReply.contentPreview,
-        meta: `${stats.latestReply.postTitle} · ${stats.latestReply.authorName}`,
-        time: stats.latestReply.updatedAt,
-        to: stats.latestReply.href,
+        title: latestReply.value.contentPreview,
+        meta: `${latestReply.value.postTitle || `帖子 #${latestReply.value.postId}`} · ${latestReply.value.authorName}`,
+        time: latestReply.value.updatedAt,
+        to: latestReply.value.href,
       }
     : null,
 ].filter(Boolean))

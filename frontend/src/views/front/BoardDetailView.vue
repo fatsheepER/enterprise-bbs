@@ -1,17 +1,35 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
+import { getBoard } from '@/api/boards'
+import { getPosts } from '@/api/posts'
 import boardIcon from '@/assets/board-placeholder.svg'
 import PostTable from '@/components/PostTable.vue'
-import { visibleBoards, visiblePosts } from '@/mock/forumViewModels'
 
 const route = useRoute()
-const boards = visibleBoards()
+const board = ref(null)
+const posts = ref([])
 
 const boardId = computed(() => Number(route.params.id))
-const board = computed(() => boards.find((item) => item.id === boardId.value))
-const posts = computed(() => visiblePosts({ boardId: boardId.value }))
+
+async function loadBoard() {
+  try {
+    const [boardDetail, postList] = await Promise.all([
+      getBoard(boardId.value),
+      getPosts({ boardId: boardId.value }),
+    ])
+
+    board.value = boardDetail
+    posts.value = postList
+  } catch {
+    board.value = null
+    posts.value = []
+  }
+}
+
+onMounted(loadBoard)
+watch(boardId, loadBoard)
 </script>
 
 <template>

@@ -30,5 +30,7 @@ public interface PostMapper {
 
     int incrementViewCount(@Param("id") Long id);
 
+    int touchUpdatedAt(@Param("id") Long id);
+
     int updateStatus(@Param("id") Long id, @Param("status") Integer status);
 }

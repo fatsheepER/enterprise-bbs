@@ -1,8 +1,14 @@
 <script setup>
-import PostTable from '@/components/PostTable.vue'
-import { visiblePosts } from '@/mock/forumViewModels'
+import { onMounted, ref } from 'vue'
 
-const posts = visiblePosts()
+import { getPosts } from '@/api/posts'
+import PostTable from '@/components/PostTable.vue'
+
+const posts = ref([])
+
+onMounted(async () => {
+  posts.value = await getPosts()
+})
 </script>
 
 <template>
