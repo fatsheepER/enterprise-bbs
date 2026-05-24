@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.feiyang.bbs.mapper.ReplyMapper">
+    <resultMap id="ReplyVOResultMap" type="com.feiyang.bbs.vo.ReplyVO">
+        <id property="id" column="id"/>
+        <result property="postId" column="post_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="authorName" column="author_name"/>
+        <result property="authorAvatar" column="author_avatar"/>
+        <result property="authorRole" column="author_role"/>
+        <result property="parentReplyId" column="parent_reply_id"/>
+        <result property="content" column="content"/>
+        <result property="status" column="status"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <association property="parentReply" javaType="com.feiyang.bbs.vo.ParentReplyVO" notNullColumn="parent_reply_id">
+            <id property="id" column="parent_reply_id"/>
+            <result property="authorName" column="parent_author_name"/>
+            <result property="contentPreview" column="parent_content_preview"/>
+        </association>
+    </resultMap>
+
+    <sql id="ReplyColumns">
+        id, post_id, user_id, parent_reply_id, content, status, created_at, updated_at
+    </sql>
+
+    <sql id="ReplyVOSelect">
+        SELECT
+            r.id,
+            r.post_id,
+            r.user_id,
+            COALESCE(NULLIF(u.nickname, ''), u.username) AS author_name,
+            u.avatar AS author_avatar,
+            u.role AS author_role,
+            r.parent_reply_id,
+            COALESCE(NULLIF(pu.nickname, ''), pu.username) AS parent_author_name,
+            CASE
+                WHEN pr.id IS NULL THEN NULL
+                WHEN length(pr.content) > 80 THEN substring(pr.content from 1 for 80) || '...'
+                ELSE pr.content
+            END AS parent_content_preview,
+            r.content,
+            r.status,
+            r.created_at,
+            r.updated_at
+        FROM replies r
+        JOIN users u ON u.id = r.user_id
+        JOIN posts p ON p.id = r.post_id
+        LEFT JOIN replies pr ON pr.id = r.parent_reply_id
+        LEFT JOIN users pu ON pu.id = pr.user_id
+    </sql>
+
+    <insert id="insert" parameterType="com.feiyang.bbs.entity.Reply" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO replies (post_id, user_id, parent_reply_id, content, status)
+        VALUES (#{postId}, #{userId}, #{parentReplyId}, #{content}, COALESCE(#{status}, 1))
+    </insert>
+
+    <select id="findById" resultType="com.feiyang.bbs.entity.Reply">
+        SELECT <include refid="ReplyColumns"/>
+        FROM replies
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectReplyVOById" resultMap="ReplyVOResultMap">
+        <include refid="ReplyVOSelect"/>
+        WHERE r.id = #{id}
+    </select>
+
+    <select id="selectVisibleRepliesByPostId" resultMap="ReplyVOResultMap">
+        <include refid="ReplyVOSelect"/>
+        WHERE r.post_id = #{postId}
+          AND r.status = 1
+        ORDER BY r.created_at ASC, r.id ASC
+    </select>
+
+    <select id="selectAdminReplies" resultMap="ReplyVOResultMap">
+        <include refid="ReplyVOSelect"/>
+        WHERE 1 = 1
+        <if test="id != null">
+          AND r.id = #{id}
+        </if>
+        <if test="postId != null">
+          AND r.post_id = #{postId}
+        </if>
+        <if test="keyword != null and keyword != ''">
+          AND (r.content ILIKE '%' || #{keyword} || '%' OR p.title ILIKE '%' || #{keyword} || '%')
+        </if>
+        <if test="status != null">
+          AND r.status = #{status}
+        </if>
+        ORDER BY r.status DESC, r.created_at DESC, r.id DESC
+    </select>
+
+    <update id="updateStatus">
+        UPDATE replies
+        SET status = #{status},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+</mapper>

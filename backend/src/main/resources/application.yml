@@ -3,13 +3,13 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/enterprise_bbs
+    url: jdbc:postgresql://localhost:5432/bbs_db
     username: postgres
     password: 123456
     driver-class-name: org.postgresql.Driver
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml
-  type-aliases-package: com.example.bbs.entity
+  type-aliases-package: com.feiyang.bbs.entity
   configuration:
     map-underscore-to-camel-case: true

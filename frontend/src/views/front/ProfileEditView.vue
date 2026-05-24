@@ -117,14 +117,14 @@ function resetPasswordFields() {
   form.confirmPassword = ''
 }
 
-function submitProfile() {
+async function submitProfile() {
   if (!validateForm()) {
     return
   }
 
   try {
     if (hasProfileChanges.value) {
-      authStore.updateProfile({
+      await authStore.updateProfile({
         nickname: form.nickname,
         avatar: currentUser.value?.avatar || '',
         email: form.email,
@@ -133,7 +133,7 @@ function submitProfile() {
     }
 
     if (hasCompletePassword.value) {
-      authStore.changePassword({
+      await authStore.changePassword({
         oldPassword: form.oldPassword,
         newPassword: form.newPassword,
       })

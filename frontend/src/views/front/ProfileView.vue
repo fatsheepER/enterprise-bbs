@@ -1,18 +1,20 @@
 <script setup>
-import { computed, ref, watchEffect } from 'vue'
+import { computed, onMounted, ref, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import PostTable from '@/components/PostTable.vue'
 import eyeIcon from '@/assets/eye.svg'
 import gearIcon from '@/assets/gear.svg'
 import personPlaceholder from '@/assets/person-placeholder.svg'
-import { userReplies, visiblePosts } from '@/mock/forumViewModels'
+import { getUserReplies } from '@/api/user'
+import { visiblePosts } from '@/mock/forumViewModels'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
 const route = useRoute()
 const router = useRouter()
 const activeTab = ref('posts')
+const userReplyList = ref([])
 
 watchEffect(() => {
   if (!authStore.isLoggedIn) {
@@ -31,10 +33,14 @@ const avatarSrc = computed(() => currentUser.value?.avatar || personPlaceholder)
 const userPosts = computed(() =>
   currentUser.value ? visiblePosts({ userId: currentUser.value.id }) : [],
 )
-const replyPage = computed(() =>
-  currentUser.value ? userReplies(currentUser.value.id) : { list: [], total: 0 },
-)
-const userReplyList = computed(() => replyPage.value.list)
+
+onMounted(async () => {
+  if (!currentUser.value) {
+    return
+  }
+
+  userReplyList.value = await getUserReplies()
+})
 
 function formatDisplayDate(dateTime) {
   return dateTime?.slice(0, 10) ?? ''
