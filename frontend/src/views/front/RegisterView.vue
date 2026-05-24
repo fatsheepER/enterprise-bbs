@@ -18,11 +18,11 @@ const form = reactive({
 })
 const errorMessage = ref('')
 
-function submitRegister() {
+async function submitRegister() {
   errorMessage.value = ''
 
   try {
-    authStore.register(form)
+    await authStore.register(form)
     router.push('/profile')
   } catch (error) {
     errorMessage.value = error.message || '注册失败'

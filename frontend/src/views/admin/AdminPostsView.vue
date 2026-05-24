@@ -1,9 +1,9 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
+import { getAdminPosts, updateAdminPostStatus } from '@/api/admin'
 import AdminTable from '@/components/AdminTable.vue'
-import { adminPosts, updateAdminPostStatus } from '@/mock/forumViewModels'
 import { useAuthStore } from '@/stores/auth'
 
 const pageSize = 10
@@ -14,7 +14,7 @@ const router = useRouter()
 
 const idQuery = ref('')
 const keywordQuery = ref('')
-const refreshKey = ref(0)
+const posts = ref([])
 const activePage = ref(1)
 const hiddenPage = ref(1)
 
@@ -59,20 +59,26 @@ const normalizedIdQuery = computed(() => {
 const postFilters = computed(() => ({
   id: normalizedIdQuery.value,
   keyword: keywordQuery.value,
-  refreshKey: refreshKey.value,
 }))
 
-const filteredPosts = computed(() => {
+async function loadPosts() {
+  if (!authStore.isAdmin) {
+    return
+  }
+
   const { id, keyword } = postFilters.value
 
-  return adminPosts({
+  posts.value = await getAdminPosts({
     id,
     keyword,
   })
-})
+}
 
-const activePosts = computed(() => filteredPosts.value.filter((post) => post.status === 1))
-const hiddenPosts = computed(() => filteredPosts.value.filter((post) => post.status === 0))
+onMounted(loadPosts)
+watch([idQuery, keywordQuery], loadPosts)
+
+const activePosts = computed(() => posts.value.filter((post) => post.status === 1))
+const hiddenPosts = computed(() => posts.value.filter((post) => post.status === 0))
 
 const activeTotalPages = computed(() => totalPages(activePosts.value))
 const hiddenTotalPages = computed(() => totalPages(hiddenPosts.value))
@@ -107,9 +113,9 @@ function splitDateTime(dateTime) {
   }
 }
 
-function setPostStatus(post, status) {
-  updateAdminPostStatus(post.id, status)
-  refreshKey.value += 1
+async function setPostStatus(post, status) {
+  await updateAdminPostStatus(post.id, status)
+  await loadPosts()
   activePage.value = Math.min(activePage.value, activeTotalPages.value)
   hiddenPage.value = Math.min(hiddenPage.value, hiddenTotalPages.value)
 }

@@ -1,18 +1,21 @@
 <script setup>
-import { computed, ref, watchEffect } from 'vue'
+import { computed, onMounted, ref, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
+import { getPosts } from '@/api/posts'
 import PostTable from '@/components/PostTable.vue'
 import eyeIcon from '@/assets/eye.svg'
 import gearIcon from '@/assets/gear.svg'
 import personPlaceholder from '@/assets/person-placeholder.svg'
-import { userReplies, visiblePosts } from '@/mock/forumViewModels'
+import { getUserReplies } from '@/api/user'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
 const route = useRoute()
 const router = useRouter()
 const activeTab = ref('posts')
+const userPosts = ref([])
+const userReplyList = ref([])
 
 watchEffect(() => {
   if (!authStore.isLoggedIn) {
@@ -28,13 +31,19 @@ const displayName = computed(
   () => currentUser.value?.nickname || currentUser.value?.username || '当前用户',
 )
 const avatarSrc = computed(() => currentUser.value?.avatar || personPlaceholder)
-const userPosts = computed(() =>
-  currentUser.value ? visiblePosts({ userId: currentUser.value.id }) : [],
-)
-const replyPage = computed(() =>
-  currentUser.value ? userReplies(currentUser.value.id) : { list: [], total: 0 },
-)
-const userReplyList = computed(() => replyPage.value.list)
+onMounted(async () => {
+  if (!currentUser.value) {
+    return
+  }
+
+  const [postList, replyList] = await Promise.all([
+    getPosts({ userId: currentUser.value.id }),
+    getUserReplies(),
+  ])
+
+  userPosts.value = postList
+  userReplyList.value = replyList
+})
 
 function formatDisplayDate(dateTime) {
   return dateTime?.slice(0, 10) ?? ''
@@ -157,7 +166,7 @@ function formatDisplayDate(dateTime) {
               <div class="post-block__actions">
                 <RouterLink
                   class="reply-button profile-reply__view-button"
-                  :to="`/post/${reply.postId}#reply-${reply.id}`"
+                  :to="`/posts/${reply.postId}#reply-${reply.id}`"
                   :aria-label="`查看回复 #${reply.id}`"
                 >
                   <img class="reply-button__icon" :src="eyeIcon" alt="" />

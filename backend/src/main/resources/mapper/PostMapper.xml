@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.feiyang.bbs.mapper.PostMapper">
+    <resultMap id="PostListItemVOResultMap" type="com.feiyang.bbs.vo.PostListItemVO">
+        <id property="id" column="id"/>
+        <result property="boardId" column="board_id"/>
+        <result property="boardName" column="board_name"/>
+        <result property="boardColorHex" column="board_color_hex"/>
+        <result property="userId" column="user_id"/>
+        <result property="authorName" column="author_name"/>
+        <result property="authorAvatar" column="author_avatar"/>
+        <result property="authorRole" column="author_role"/>
+        <result property="title" column="title"/>
+        <result property="contentPreview" column="content_preview"/>
+        <result property="status" column="status"/>
+        <result property="viewCount" column="view_count"/>
+        <result property="replyCount" column="reply_count"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <resultMap id="PostDetailVOResultMap" type="com.feiyang.bbs.vo.PostDetailVO">
+        <id property="id" column="id"/>
+        <result property="boardId" column="board_id"/>
+        <result property="boardName" column="board_name"/>
+        <result property="boardColorHex" column="board_color_hex"/>
+        <result property="userId" column="user_id"/>
+        <result property="authorName" column="author_name"/>
+        <result property="authorAvatar" column="author_avatar"/>
+        <result property="authorRole" column="author_role"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="status" column="status"/>
+        <result property="viewCount" column="view_count"/>
+        <result property="replyCount" column="reply_count"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <sql id="PostColumns">
+        id, board_id, user_id, title, content, status, view_count, created_at, updated_at
+    </sql>
+
+    <sql id="PostVOSelect">
+        SELECT
+            p.id,
+            p.board_id,
+            b.name AS board_name,
+            b.color_hex AS board_color_hex,
+            p.user_id,
+            COALESCE(NULLIF(u.nickname, ''), u.username) AS author_name,
+            u.avatar AS author_avatar,
+            u.role AS author_role,
+            p.title,
+            p.content,
+            CASE
+                WHEN length(p.content) > 80 THEN substring(p.content from 1 for 80) || '...'
+                ELSE p.content
+            END AS content_preview,
+            p.status,
+            p.view_count,
+            COALESCE(rc.reply_count, 0) AS reply_count,
+            p.created_at,
+            p.updated_at
+        FROM posts p
+        JOIN boards b ON b.id = p.board_id
+        JOIN users u ON u.id = p.user_id
+        LEFT JOIN (
+            SELECT post_id, COUNT(*) AS reply_count
+            FROM replies
+            WHERE status = 1
+            GROUP BY post_id
+        ) rc ON rc.post_id = p.id
+    </sql>
+
+    <insert id="insert" parameterType="com.feiyang.bbs.entity.Post" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO posts (board_id, user_id, title, content, status, view_count)
+        VALUES (#{boardId}, #{userId}, #{title}, #{content}, COALESCE(#{status}, 1), COALESCE(#{viewCount}, 0))
+    </insert>
+
+    <select id="findById" resultType="com.feiyang.bbs.entity.Post">
+        SELECT <include refid="PostColumns"/>
+        FROM posts
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectPostDetailById" resultMap="PostDetailVOResultMap">
+        <include refid="PostVOSelect"/>
+        WHERE p.id = #{id}
+    </select>
+
+    <select id="selectVisiblePostDetailById" resultMap="PostDetailVOResultMap">
+        <include refid="PostVOSelect"/>
+        WHERE p.id = #{id}
+          AND p.status = 1
+    </select>
+
+    <select id="selectVisiblePosts" resultMap="PostListItemVOResultMap">
+        <include refid="PostVOSelect"/>
+        WHERE p.status = 1
+        <if test="boardId != null">
+          AND p.board_id = #{boardId}
+        </if>
+        <if test="userId != null">
+          AND p.user_id = #{userId}
+        </if>
+        <if test="keyword != null and keyword != ''">
+          AND p.title ILIKE '%' || #{keyword} || '%'
+        </if>
+        <choose>
+            <when test="sort == 'newest'">
+                ORDER BY p.created_at DESC, p.id DESC
+            </when>
+            <when test="sort == 'views'">
+                ORDER BY p.view_count DESC, p.updated_at DESC, p.id DESC
+            </when>
+            <otherwise>
+                ORDER BY p.updated_at DESC, p.id DESC
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="selectAdminPosts" resultMap="PostListItemVOResultMap">
+        <include refid="PostVOSelect"/>
+        WHERE 1 = 1
+        <if test="id != null">
+          AND p.id = #{id}
+        </if>
+        <if test="boardId != null">
+          AND p.board_id = #{boardId}
+        </if>
+        <if test="keyword != null and keyword != ''">
+          AND p.title ILIKE '%' || #{keyword} || '%'
+        </if>
+        <if test="status != null">
+          AND p.status = #{status}
+        </if>
+        ORDER BY p.status DESC, p.updated_at DESC, p.id DESC
+    </select>
+
+    <update id="incrementViewCount">
+        UPDATE posts
+        SET view_count = view_count + 1
+        WHERE id = #{id}
+    </update>
+
+    <update id="touchUpdatedAt">
+        UPDATE posts
+        SET updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE posts
+        SET status = #{status},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+</mapper>

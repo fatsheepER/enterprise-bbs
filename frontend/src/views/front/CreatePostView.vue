@@ -1,8 +1,9 @@
 <script setup>
-import { computed, reactive, ref, watchEffect } from 'vue'
+import { computed, onMounted, reactive, ref, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import { createPost, visibleBoards } from '@/mock/forumViewModels'
+import { getBoards } from '@/api/boards'
+import { createPost } from '@/api/posts'
 import { useAuthStore } from '@/stores/auth'
 
 const TITLE_LIMIT = 100
@@ -12,7 +13,7 @@ const authStore = useAuthStore()
 const route = useRoute()
 const router = useRouter()
 
-const boards = visibleBoards()
+const boards = ref([])
 const form = reactive({
   title: '',
   content: '',
@@ -26,8 +27,12 @@ const errors = reactive({
 const submitError = ref('')
 
 const selectedBoard = computed(() =>
-  boards.find((board) => board.id === Number(form.boardId)),
+  boards.value.find((board) => board.id === Number(form.boardId)),
 )
+
+onMounted(async () => {
+  boards.value = await getBoards()
+})
 
 watchEffect(() => {
   if (!authStore.isLoggedIn) {
@@ -71,20 +76,19 @@ function validateForm() {
   return Object.values(errors).every((message) => !message)
 }
 
-function submitPost() {
+async function submitPost() {
   if (!validateForm()) {
     return
   }
 
   try {
-    const post = createPost({
+    const post = await createPost({
       boardId: Number(form.boardId),
       title: form.title,
       content: form.content,
-      user: authStore.currentUser,
     })
 
-    router.push(`/post/${post.id}`)
+    router.push(`/posts/${post.id}`)
   } catch (error) {
     submitError.value = error.message || '发布失败'
   }

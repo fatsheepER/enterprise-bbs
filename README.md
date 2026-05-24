@@ -57,7 +57,7 @@ npm run dev
 
 ## 数据库
 
-建表脚本位于：
+数据库默认名称为 bbs_db。建表脚本位于：
 
 ```text
 sql/schema.sql

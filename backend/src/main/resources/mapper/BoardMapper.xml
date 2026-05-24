@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.feiyang.bbs.mapper.BoardMapper">
+    <resultMap id="BoardVOResultMap" type="com.feiyang.bbs.vo.BoardVO">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="description" column="description"/>
+        <result property="colorHex" column="color_hex"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="status" column="status"/>
+        <result property="postCount" column="post_count"/>
+        <result property="replyCount" column="reply_count"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <association property="latestPost" javaType="com.feiyang.bbs.vo.LatestPostVO" notNullColumn="latest_post_id">
+            <id property="id" column="latest_post_id"/>
+            <result property="title" column="latest_post_title"/>
+            <result property="updatedAt" column="latest_post_updated_at"/>
+        </association>
+    </resultMap>
+
+    <sql id="BoardColumns">
+        id, name, description, color_hex, sort_order, status, created_at, updated_at
+    </sql>
+
+    <sql id="BoardVOSelect">
+        SELECT
+            b.id,
+            b.name,
+            b.description,
+            b.color_hex,
+            b.sort_order,
+            b.status,
+            b.created_at,
+            b.updated_at,
+            COALESCE(ps.post_count, 0) AS post_count,
+            COALESCE(rs.reply_count, 0) AS reply_count,
+            lp.id AS latest_post_id,
+            lp.title AS latest_post_title,
+            lp.updated_at AS latest_post_updated_at
+        FROM boards b
+        LEFT JOIN (
+            SELECT board_id, COUNT(*) AS post_count
+            FROM posts
+            WHERE status = 1
+            GROUP BY board_id
+        ) ps ON ps.board_id = b.id
+        LEFT JOIN (
+            SELECT p.board_id, COUNT(r.id) AS reply_count
+            FROM posts p
+            JOIN replies r ON r.post_id = p.id AND r.status = 1
+            WHERE p.status = 1
+            GROUP BY p.board_id
+        ) rs ON rs.board_id = b.id
+        LEFT JOIN LATERAL (
+            SELECT id, title, updated_at
+            FROM posts
+            WHERE board_id = b.id AND status = 1
+            ORDER BY updated_at DESC, id DESC
+            LIMIT 1
+        ) lp ON TRUE
+    </sql>
+
+    <insert id="insert" parameterType="com.feiyang.bbs.entity.Board" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO boards (name, description, color_hex, sort_order, status)
+        VALUES (
+            #{name},
+            COALESCE(#{description}, ''),
+            COALESCE(#{colorHex}, '#007aff'),
+            COALESCE(#{sortOrder}, 0),
+            COALESCE(#{status}, 1)
+        )
+    </insert>
+
+    <update id="update" parameterType="com.feiyang.bbs.entity.Board">
+        UPDATE boards
+        SET name = #{name},
+            description = COALESCE(#{description}, ''),
+            color_hex = COALESCE(#{colorHex}, '#007aff'),
+            sort_order = COALESCE(#{sortOrder}, 0),
+            status = COALESCE(#{status}, 1),
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+
+    <select id="findById" resultType="com.feiyang.bbs.entity.Board">
+        SELECT <include refid="BoardColumns"/>
+        FROM boards
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectBoardVOById" resultMap="BoardVOResultMap">
+        <include refid="BoardVOSelect"/>
+        WHERE b.id = #{id}
+    </select>
+
+    <select id="selectVisibleBoardVOById" resultMap="BoardVOResultMap">
+        <include refid="BoardVOSelect"/>
+        WHERE b.id = #{id}
+          AND b.status = 1
+    </select>
+
+    <select id="selectVisibleBoards" resultMap="BoardVOResultMap">
+        <include refid="BoardVOSelect"/>
+        WHERE b.status = 1
+        <if test="keyword != null and keyword != ''">
+          AND b.name ILIKE '%' || #{keyword} || '%'
+        </if>
+        ORDER BY b.sort_order ASC, b.id ASC
+    </select>
+
+    <select id="selectAdminBoards" resultMap="BoardVOResultMap">
+        <include refid="BoardVOSelect"/>
+        WHERE 1 = 1
+        <if test="id != null">
+          AND b.id = #{id}
+        </if>
+        <if test="keyword != null and keyword != ''">
+          AND b.name ILIKE '%' || #{keyword} || '%'
+        </if>
+        <if test="status != null">
+          AND b.status = #{status}
+        </if>
+        ORDER BY b.status DESC, b.sort_order ASC, b.id ASC
+    </select>
+
+    <select id="countByName" resultType="int">
+        SELECT COUNT(*)
+        FROM boards
+        WHERE name = #{name}
+    </select>
+
+    <select id="countByNameExcludeId" resultType="int">
+        SELECT COUNT(*)
+        FROM boards
+        WHERE name = #{name}
+          AND id != #{id}
+    </select>
+
+    <update id="updateStatus">
+        UPDATE boards
+        SET status = #{status},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+</mapper>
