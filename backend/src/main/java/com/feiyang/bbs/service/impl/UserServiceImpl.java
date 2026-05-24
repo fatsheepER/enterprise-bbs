@@ -38,7 +38,7 @@ public class UserServiceImpl implements UserService {
                 .nickname(defaultIfBlank(dto.getNickname(), username))
                 .avatar("")
                 .email(trimToNull(dto.getEmail()))
-                .bio("")
+                .bio(defaultIfBlank(dto.getBio(), ""))
                 .role(CurrentUser.ROLE_USER)
                 .build();
         userMapper.insert(user);

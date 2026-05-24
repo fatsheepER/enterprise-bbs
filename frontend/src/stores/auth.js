@@ -44,12 +44,13 @@ export const useAuthStore = defineStore('auth', () => {
     return safeUser
   }
 
-  async function register({ username, password, nickname, email }) {
+  async function register({ username, password, nickname, email, bio }) {
     const safeUser = await registerUser({
       username: username.trim(),
       password,
       nickname: nickname.trim(),
       email: email.trim(),
+      bio: bio.trim(),
     })
     persistCurrentUser(safeUser)
     currentUser.value = safeUser
