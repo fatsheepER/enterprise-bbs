@@ -453,9 +453,48 @@ X-User-Role: USER
 | `email` | string | 否 | 邮箱 |
 | `bio` | string | 否 | 个人简介 |
 
+说明：普通用户不能通过该接口修改 `username` 或 `role`。
+
 响应 `data`：`UserVO`
 
-### 6.5 获取我的回复列表
+### 6.5 修改密码
+
+```text
+PUT /api/user/password
+```
+
+需要登录。
+
+请求头：
+
+```text
+X-User-Id: 1
+X-User-Role: USER
+```
+
+请求体：
+
+```json
+{
+  "oldPassword": "123456",
+  "newPassword": "new123456"
+}
+```
+
+请求字段：
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `oldPassword` | string | 是 | 当前密码 |
+| `newPassword` | string | 是 | 新密码，长度 6-32 |
+
+响应 `data`：
+
+```json
+true
+```
+
+### 6.6 获取我的回复列表
 
 ```text
 GET /api/user/replies
@@ -993,6 +1032,7 @@ true
 | `40001` | `用户名或密码错误` | 登录失败 |
 | `40002` | `用户名已存在` | 注册用户名重复 |
 | `40003` | `版块名称已存在` | 新增或修改版块时名称重复 |
+| `40004` | `旧密码错误` | 修改密码时当前密码不正确 |
 | `40100` | `请先登录` | 缺少 `X-User-Id` 或登录态无效 |
 | `40300` | `无权限访问` | 普通用户访问管理员接口或操作他人资源 |
 | `40400` | `资源不存在` | 用户、版块、帖子或回复不存在 |
@@ -1053,6 +1093,7 @@ true
 | 用户 | `POST` | `/api/user/login` | 公开 | 用户/管理员登录 |
 | 用户 | `GET` | `/api/user/profile` | 登录 | 获取个人资料 |
 | 用户 | `PUT` | `/api/user/profile` | 登录 | 修改个人资料 |
+| 用户 | `PUT` | `/api/user/password` | 登录 | 修改密码 |
 | 用户 | `GET` | `/api/user/replies` | 登录 | 获取我的回复列表 |
 | 版块 | `GET` | `/api/boards` | 公开 | 获取启用版块列表 |
 | 版块 | `GET` | `/api/boards/{id}` | 公开 | 获取版块详情 |
