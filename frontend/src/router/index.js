@@ -4,9 +4,28 @@ import BoardDetailView from '../views/front/BoardDetailView.vue'
 import BoardsOverviewView from '../views/front/BoardsOverviewView.vue'
 import PostDetailView from '../views/front/PostDetailView.vue'
 import PostsView from '../views/front/PostsView.vue'
+import LoginView from '../views/LoginView.vue'
+import PlaceholderView from '../views/PlaceholderView.vue'
+import ProfileView from '../views/ProfileView.vue'
+import ProfileEditView from '../views/ProfileEditView.vue'
+import RegisterView from '../views/RegisterView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition
+    }
+
+    if (to.hash) {
+      return {
+        el: to.hash,
+        top: 0,
+      }
+    }
+
+    return { top: 0 }
+  },
   routes: [
     {
       path: '/',
@@ -17,6 +36,35 @@ const router = createRouter({
       path: '/posts',
       name: 'posts',
       component: PostsView,
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: LoginView,
+    },
+    {
+      path: '/register',
+      name: 'register',
+      component: RegisterView,
+    },
+    {
+      path: '/profile',
+      name: 'profile',
+      component: ProfileView,
+    },
+    {
+      path: '/profile/edit',
+      name: 'profile-edit',
+      component: ProfileEditView,
+    },
+    {
+      path: '/admin',
+      name: 'admin',
+      component: PlaceholderView,
+      props: {
+        title: '控制台',
+        description: '管理员版块和帖子管理入口将在后续实现。',
+      },
     },
     {
       path: '/board/:id',

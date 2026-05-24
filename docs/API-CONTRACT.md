@@ -282,6 +282,37 @@ X-User-Role: ADMIN
 }
 ```
 
+### 5.6 UserReplyListItemVO
+
+用于个人主页展示当前登录用户发表过的回复。`reference` 字段永远存在：如果 `parentReplyId` 不为空，引用父回复摘要；如果 `parentReplyId` 为空，引用原帖摘要。
+
+```json
+{
+  "id": 1,
+  "postId": 1,
+  "userId": 2,
+  "authorName": "Alice",
+  "authorAvatar": "",
+  "parentReplyId": null,
+  "content": "我也遇到过这个问题。",
+  "status": 1,
+  "createdAt": "2026-05-23 16:30:00",
+  "updatedAt": "2026-05-23 16:30:00",
+  "postTitle": "如何统一接口返回格式",
+  "postContentPreview": "帖子正文摘要，用于个人主页引用展示。",
+  "boardId": 1,
+  "boardName": "技术交流",
+  "boardColorHex": "#007aff",
+  "reference": {
+    "type": "post",
+    "id": 1,
+    "authorName": "Bob",
+    "contentPreview": "帖子正文摘要，用于个人主页引用展示。",
+    "href": "/post/1"
+  }
+}
+```
+
 ## 6. 用户接口
 
 ### 6.1 用户注册
@@ -422,7 +453,70 @@ X-User-Role: USER
 | `email` | string | 否 | 邮箱 |
 | `bio` | string | 否 | 个人简介 |
 
+说明：普通用户不能通过该接口修改 `username` 或 `role`。
+
 响应 `data`：`UserVO`
+
+### 6.5 修改密码
+
+```text
+PUT /api/user/password
+```
+
+需要登录。
+
+请求头：
+
+```text
+X-User-Id: 1
+X-User-Role: USER
+```
+
+请求体：
+
+```json
+{
+  "oldPassword": "123456",
+  "newPassword": "new123456"
+}
+```
+
+请求字段：
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `oldPassword` | string | 是 | 当前密码 |
+| `newPassword` | string | 是 | 新密码，长度 6-32 |
+
+响应 `data`：
+
+```json
+true
+```
+
+### 6.6 获取我的回复列表
+
+```text
+GET /api/user/replies
+```
+
+需要登录。用于个人主页展示当前登录用户发表过的回复。
+
+请求头：
+
+```text
+X-User-Id: 1
+X-User-Role: USER
+```
+
+查询参数：
+
+| 参数 | 类型 | 必填 | 默认值 | 说明 |
+| --- | --- | --- | --- | --- |
+| `page` | number | 否 | `1` | 当前页 |
+| `pageSize` | number | 否 | `10` | 每页条数 |
+
+响应 `data`：分页对象，`list` 元素为 `UserReplyListItemVO`
 
 ## 7. 版块接口
 
@@ -938,6 +1032,7 @@ true
 | `40001` | `用户名或密码错误` | 登录失败 |
 | `40002` | `用户名已存在` | 注册用户名重复 |
 | `40003` | `版块名称已存在` | 新增或修改版块时名称重复 |
+| `40004` | `旧密码错误` | 修改密码时当前密码不正确 |
 | `40100` | `请先登录` | 缺少 `X-User-Id` 或登录态无效 |
 | `40300` | `无权限访问` | 普通用户访问管理员接口或操作他人资源 |
 | `40400` | `资源不存在` | 用户、版块、帖子或回复不存在 |
@@ -998,6 +1093,8 @@ true
 | 用户 | `POST` | `/api/user/login` | 公开 | 用户/管理员登录 |
 | 用户 | `GET` | `/api/user/profile` | 登录 | 获取个人资料 |
 | 用户 | `PUT` | `/api/user/profile` | 登录 | 修改个人资料 |
+| 用户 | `PUT` | `/api/user/password` | 登录 | 修改密码 |
+| 用户 | `GET` | `/api/user/replies` | 登录 | 获取我的回复列表 |
 | 版块 | `GET` | `/api/boards` | 公开 | 获取启用版块列表 |
 | 版块 | `GET` | `/api/boards/{id}` | 公开 | 获取版块详情 |
 | 帖子 | `GET` | `/api/posts` | 公开 | 获取帖子列表 |
