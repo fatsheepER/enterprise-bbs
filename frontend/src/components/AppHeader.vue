@@ -105,11 +105,11 @@ onBeforeUnmount(() => {
                 <strong class="account-menu__name">{{ authStore.displayName }}</strong>
                 <div class="account-menu__links">
                   <RouterLink to="/profile" role="menuitem" @click="closeMenu">
-                    View Profile
+                    个人资料
                   </RouterLink>
                   <span aria-hidden="true">|</span>
                   <RouterLink to="/profile" role="menuitem" @click="closeMenu">
-                    Edit Profile
+                    编辑资料
                   </RouterLink>
                 </div>
               </div>
@@ -122,10 +122,10 @@ onBeforeUnmount(() => {
               role="menuitem"
               @click="closeMenu"
             >
-              控制台
+              管理员后台
             </RouterLink>
             <button class="account-menu__item" type="button" role="menuitem" @click="signOut">
-              Sign out
+              退出登录
             </button>
           </div>
         </div>

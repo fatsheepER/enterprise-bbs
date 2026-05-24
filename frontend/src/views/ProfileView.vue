@@ -62,11 +62,11 @@ function formatDisplayDate(dateTime) {
 
         <dl class="profile-hero__meta">
           <div class="profile-hero__meta-item">
-            <dt>Username</dt>
+            <dt>用户名</dt>
             <dd>{{ currentUser.username }}</dd>
           </div>
           <div class="profile-hero__meta-item">
-            <dt>Email</dt>
+            <dt>电子邮箱</dt>
             <dd>{{ currentUser.email || '未填写' }}</dd>
           </div>
         </dl>
