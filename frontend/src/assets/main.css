@@ -7,6 +7,7 @@
 @import './styles/components/board-card.css';
 @import './styles/components/post-list-item.css';
 @import './styles/components/post-table.css';
+@import './styles/components/admin-table.css';
 @import './styles/components/post-block.css';
 @import './styles/components/reply-composer.css';
 
@@ -19,3 +20,7 @@
 @import './styles/pages/create-post.css';
 @import './styles/pages/profile.css';
 @import './styles/pages/profile-edit.css';
+@import './styles/pages/admin/dashboard.css';
+@import './styles/pages/admin/boards.css';
+@import './styles/pages/admin/posts.css';
+@import './styles/pages/admin/replies.css';

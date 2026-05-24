@@ -1,0 +1,339 @@
+.admin-boards-page {
+  display: grid;
+  gap: 24px;
+}
+
+.admin-boards-page__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.admin-boards-page__back {
+  display: inline-flex;
+  margin-bottom: 10px;
+  color: #0066cc;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.admin-boards-page__back:hover,
+.admin-boards-page__back:focus-visible {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
+.admin-boards-page__title {
+  margin: 0;
+  color: #1d1d1f;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.12;
+}
+
+.admin-boards-page__create {
+  min-height: 44px;
+  border: 0;
+  border-radius: 8px;
+  background: #1d1d1f;
+  padding: 0 18px;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.admin-boards-page__create:hover,
+.admin-boards-page__create:focus-visible {
+  background: #333336;
+  outline: none;
+}
+
+.admin-boards-filter {
+  display: grid;
+  grid-template-columns: minmax(140px, 180px) minmax(240px, 1fr);
+  gap: 16px;
+  border-radius: 9px;
+  background: #fff;
+  padding: 20px 24px;
+}
+
+.admin-boards-filter__field,
+.admin-board-form__field {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.admin-boards-filter__field span,
+.admin-board-form__field span {
+  color: #6e6e73;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.admin-boards-filter__field input,
+.admin-board-form__field input,
+.admin-board-form__field textarea,
+.admin-board-form__field select {
+  width: 100%;
+  border: 1px solid #d8d8dc;
+  border-radius: 8px;
+  background: #fff;
+  color: #1d1d1f;
+  font: inherit;
+  font-size: 15px;
+}
+
+.admin-boards-filter__field input,
+.admin-board-form__field input,
+.admin-board-form__field select {
+  height: 42px;
+  padding: 0 12px;
+}
+
+.admin-board-form__field input[type='color'] {
+  padding: 4px;
+}
+
+.admin-board-form__field textarea {
+  min-height: 104px;
+  resize: vertical;
+  padding: 10px 12px;
+  line-height: 1.45;
+}
+
+.admin-boards-filter__field input:focus,
+.admin-board-form__field input:focus,
+.admin-board-form__field textarea:focus,
+.admin-board-form__field select:focus {
+  border-color: #0066cc;
+  outline: 3px solid rgba(0, 102, 204, 0.14);
+}
+
+.admin-boards-section {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-boards-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.admin-boards-section__title {
+  margin: 0;
+  color: #1d1d1f;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.admin-boards-section__count {
+  display: inline-flex;
+  min-width: 34px;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #eaf6ee;
+  color: #1e7d39;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.admin-boards-section__count--disabled {
+  background: #fff4e8;
+  color: #a44800;
+}
+
+.admin-boards-table__id {
+  width: 66px;
+}
+
+.admin-boards-table__name {
+  width: 160px;
+  font-weight: 700;
+}
+
+.admin-boards-table__color {
+  width: 68px;
+}
+
+.admin-boards-table__sort,
+.admin-boards-table__count {
+  width: 68px;
+}
+
+.admin-boards-table__status {
+  width: 78px;
+}
+
+.admin-boards-table__time {
+  width: 126px;
+  color: #6e6e73;
+  font-size: 13px;
+}
+
+.admin-boards-color__swatch {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 6px;
+  vertical-align: middle;
+}
+
+.admin-boards-time {
+  display: grid;
+  gap: 4px;
+  color: #6e6e73;
+  line-height: 1.15;
+}
+
+.admin-board-dialog {
+  position: fixed;
+  z-index: 30;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(29, 29, 31, 0.42);
+  padding: 28px;
+}
+
+.admin-board-dialog__panel {
+  width: min(100%, 560px);
+  border-radius: 9px;
+  background: #fff;
+  padding: 24px;
+  box-shadow: 0 24px 72px rgba(0, 0, 0, 0.2);
+}
+
+.admin-board-dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.admin-board-dialog__title {
+  margin: 0;
+  color: #1d1d1f;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.admin-board-dialog__close {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: #f5f5f7;
+  color: #1d1d1f;
+  cursor: pointer;
+  font: inherit;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.admin-board-dialog__close:hover,
+.admin-board-dialog__close:focus-visible {
+  background: #e8e8ed;
+  outline: none;
+}
+
+.admin-board-form__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.admin-board-form__field + .admin-board-form__field {
+  margin-top: 16px;
+}
+
+.admin-board-form__grid .admin-board-form__field {
+  margin-top: 0;
+}
+
+.admin-board-form__error {
+  margin: 16px 0 0;
+  color: #b42318;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.admin-board-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.admin-board-dialog__cancel,
+.admin-board-dialog__submit {
+  min-height: 40px;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 16px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.admin-board-dialog__cancel {
+  background: #f5f5f7;
+  color: #1d1d1f;
+}
+
+.admin-board-dialog__submit {
+  background: #1d1d1f;
+  color: #fff;
+}
+
+.admin-board-dialog__cancel:hover,
+.admin-board-dialog__cancel:focus-visible {
+  background: #e8e8ed;
+  outline: none;
+}
+
+.admin-board-dialog__submit:hover,
+.admin-board-dialog__submit:focus-visible {
+  background: #333336;
+  outline: none;
+}
+
+@media (max-width: 760px) {
+  .admin-boards-page__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-boards-page__title {
+    font-size: 34px;
+  }
+
+  .admin-boards-filter,
+  .admin-board-form__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-boards-page__create {
+    width: 100%;
+  }
+
+  .admin-board-dialog {
+    align-items: start;
+    padding: 18px;
+  }
+}

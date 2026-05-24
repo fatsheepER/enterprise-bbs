@@ -12,6 +12,14 @@ function byId(items) {
 const boardById = byId(boards)
 const userById = byId(users)
 
+function countByStatus(items, status) {
+  return items.filter((item) => item.status === status).length
+}
+
+function latestByUpdatedAt(items) {
+  return items.toSorted((left, right) => new Date(right.updatedAt) - new Date(left.updatedAt))[0]
+}
+
 function formatTimestamp(date = new Date()) {
   const pad = (value) => String(value).padStart(2, '0')
 
@@ -22,6 +30,14 @@ function formatTimestamp(date = new Date()) {
 
 function activeReplyCount(postId) {
   return replies.filter((reply) => reply.postId === postId && reply.status === 1).length
+}
+
+function replyCount(postId) {
+  return replies.filter((reply) => reply.postId === postId).length
+}
+
+function latestReplyTime(postId) {
+  return latestByUpdatedAt(replies.filter((reply) => reply.postId === postId))?.updatedAt ?? ''
 }
 
 function formatRelativeTime(dateTime) {
@@ -43,6 +59,61 @@ function matchesOptionalId(value, expected) {
   return expected == null || value === Number(expected)
 }
 
+function normalizeBoardPayload(payload) {
+  const name = payload.name.trim()
+  const description = payload.description?.trim() ?? ''
+  const colorHex = payload.colorHex?.trim() || '#007aff'
+  const sortOrder = Number(payload.sortOrder) || 0
+  const status = Number(payload.status) === 0 ? 0 : 1
+
+  if (!name) {
+    throw new Error('版块名称不能为空')
+  }
+
+  return {
+    name,
+    description,
+    colorHex,
+    sortOrder,
+    status,
+  }
+}
+
+function boardPostCount(boardId) {
+  return posts.filter((post) => post.boardId === boardId && post.status === 1).length
+}
+
+function boardReplyCount(boardId) {
+  const boardPostIds = new Set(
+    posts.filter((post) => post.boardId === boardId && post.status === 1).map((post) => post.id),
+  )
+
+  return replies.filter((reply) => boardPostIds.has(reply.postId) && reply.status === 1).length
+}
+
+function boardLatestPost(boardId) {
+  const latestPost = latestByUpdatedAt(
+    posts.filter((post) => post.boardId === boardId && post.status === 1),
+  )
+
+  return latestPost
+    ? {
+        id: latestPost.id,
+        title: latestPost.title,
+        updatedAt: latestPost.updatedAt,
+      }
+    : null
+}
+
+function withBoardMeta(board) {
+  return {
+    ...board,
+    postCount: boardPostCount(board.id),
+    replyCount: boardReplyCount(board.id),
+    latestPost: boardLatestPost(board.id),
+  }
+}
+
 function withPostMeta(post) {
   const board = boardById.get(post.boardId)
   const author = userById.get(post.userId)
@@ -57,6 +128,14 @@ function withPostMeta(post) {
     contentPreview: contentPreview(post.content),
     replyCount: activeReplyCount(post.id),
     relativeTime: formatRelativeTime(post.updatedAt),
+  }
+}
+
+function withAdminPostMeta(post) {
+  return {
+    ...withPostMeta(post),
+    replyCount: replyCount(post.id),
+    latestReplyTime: latestReplyTime(post.id),
   }
 }
 
@@ -80,6 +159,18 @@ function withReplyMeta(reply) {
           contentPreview: contentPreview(parentReply.content),
         }
       : null,
+  }
+}
+
+function withAdminReplyMeta(reply) {
+  const post = posts.find((item) => item.id === reply.postId)
+  const postAuthor = post ? userById.get(post.userId) : null
+
+  return {
+    ...withReplyMeta(reply),
+    postTitle: post?.title ?? '未知帖子',
+    postAuthorName: postAuthor?.nickname || postAuthor?.username || '未知用户',
+    href: `/post/${reply.postId}#reply-${reply.id}`,
   }
 }
 
@@ -127,16 +218,82 @@ export function visibleBoards() {
   return boards
     .filter((board) => board.status === 1)
     .toSorted((left, right) => left.sortOrder - right.sortOrder || left.id - right.id)
-    .map((board) => {
-      const boardPosts = visiblePosts().filter((post) => post.boardId === board.id)
+    .map(withBoardMeta)
+}
 
-      return {
-        ...board,
-        postCount: boardPosts.length,
-        replyCount: boardPosts.reduce((total, post) => total + post.replyCount, 0),
-        latestPost: boardPosts[0] ?? null,
-      }
-    })
+export function adminBoards({ id, keyword, status } = {}) {
+  const normalizedKeyword = keyword?.trim().toLowerCase() ?? ''
+  const normalizedStatus = status === '' || status == null ? null : Number(status)
+
+  return boards
+    .filter((board) => matchesOptionalId(board.id, id))
+    .filter((board) => !normalizedKeyword || board.name.toLowerCase().includes(normalizedKeyword))
+    .filter((board) => normalizedStatus == null || board.status === normalizedStatus)
+    .toSorted((left, right) => left.sortOrder - right.sortOrder || left.id - right.id)
+    .map(withBoardMeta)
+}
+
+export function createAdminBoard(payload) {
+  const normalizedBoard = normalizeBoardPayload(payload)
+
+  if (boards.some((board) => board.name === normalizedBoard.name)) {
+    throw new Error('版块名称已存在')
+  }
+
+  const now = formatTimestamp()
+  const board = {
+    id: Math.max(0, ...boards.map((item) => item.id)) + 1,
+    ...normalizedBoard,
+    createdAt: now,
+    updatedAt: now,
+  }
+
+  boards.push(board)
+  boardById.set(board.id, board)
+
+  return withBoardMeta(board)
+}
+
+export function updateAdminBoard(id, payload) {
+  const board = boards.find((item) => item.id === Number(id))
+
+  if (!board) {
+    throw new Error('版块不存在')
+  }
+
+  const normalizedBoard = normalizeBoardPayload(payload)
+
+  if (boards.some((item) => item.id !== board.id && item.name === normalizedBoard.name)) {
+    throw new Error('版块名称已存在')
+  }
+
+  Object.assign(board, normalizedBoard, {
+    updatedAt: formatTimestamp(),
+  })
+
+  boardById.set(board.id, board)
+
+  return withBoardMeta(board)
+}
+
+export function adminDashboardStats() {
+  const latestPost = latestByUpdatedAt(posts.filter((post) => post.status === 1))
+  const latestReply = latestByUpdatedAt(replies.filter((reply) => reply.status === 1))
+
+  return {
+    userCount: users.length,
+    boardCount: countByStatus(boards, 1),
+    totalBoardCount: boards.length,
+    disabledBoardCount: countByStatus(boards, 0),
+    postCount: countByStatus(posts, 1),
+    totalPostCount: posts.length,
+    hiddenPostCount: countByStatus(posts, 0),
+    replyCount: countByStatus(replies, 1),
+    totalReplyCount: replies.length,
+    hiddenReplyCount: countByStatus(replies, 0),
+    latestPost: latestPost ? withPostMeta(latestPost) : null,
+    latestReply: latestReply ? withAdminReplyMeta(latestReply) : null,
+  }
 }
 
 export function visiblePosts({ boardId, userId } = {}) {
@@ -149,6 +306,61 @@ export function visiblePosts({ boardId, userId } = {}) {
     )
     .toSorted((left, right) => new Date(right.updatedAt) - new Date(left.updatedAt))
     .map(withPostMeta)
+}
+
+export function adminPosts({ id, keyword, status } = {}) {
+  const normalizedKeyword = keyword?.trim().toLowerCase() ?? ''
+  const normalizedStatus = status === '' || status == null ? null : Number(status)
+
+  return posts
+    .filter((post) => matchesOptionalId(post.id, id))
+    .filter((post) => !normalizedKeyword || post.title.toLowerCase().includes(normalizedKeyword))
+    .filter((post) => normalizedStatus == null || post.status === normalizedStatus)
+    .toSorted((left, right) => new Date(right.updatedAt) - new Date(left.updatedAt))
+    .map(withAdminPostMeta)
+}
+
+export function updateAdminPostStatus(id, status) {
+  const post = posts.find((item) => item.id === Number(id))
+
+  if (!post) {
+    throw new Error('帖子不存在')
+  }
+
+  post.status = Number(status) === 0 ? 0 : 1
+  post.updatedAt = formatTimestamp()
+
+  return withAdminPostMeta(post)
+}
+
+export function adminReplies({ id, keyword, status } = {}) {
+  const normalizedKeyword = keyword?.trim().toLowerCase() ?? ''
+  const normalizedStatus = status === '' || status == null ? null : Number(status)
+
+  return replies
+    .filter((reply) => matchesOptionalId(reply.id, id))
+    .filter((reply) => normalizedStatus == null || reply.status === normalizedStatus)
+    .map(withAdminReplyMeta)
+    .filter(
+      (reply) =>
+        !normalizedKeyword ||
+        reply.content.toLowerCase().includes(normalizedKeyword) ||
+        reply.authorName.toLowerCase().includes(normalizedKeyword),
+    )
+    .toSorted((left, right) => new Date(right.createdAt) - new Date(left.createdAt))
+}
+
+export function updateAdminReplyStatus(id, status) {
+  const reply = replies.find((item) => item.id === Number(id))
+
+  if (!reply) {
+    throw new Error('回复不存在')
+  }
+
+  reply.status = Number(status) === 0 ? 0 : 1
+  reply.updatedAt = formatTimestamp()
+
+  return withAdminReplyMeta(reply)
 }
 
 export function postDetail(postId) {
