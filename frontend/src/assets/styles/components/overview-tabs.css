@@ -1,0 +1,42 @@
+.overview-heading {
+  margin: 0 0 28px;
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1.08;
+}
+
+.overview-tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 26px;
+}
+
+.overview-tabs__link {
+  border-radius: 8px;
+  padding: 13px 16px;
+  color: #6e6e73;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.overview-tabs__link.router-link-active {
+  background: #e8e8ed;
+  color: #1d1d1f;
+}
+
+@media (max-width: 900px) {
+  .overview-heading {
+    font-size: 40px;
+  }
+}
+
+@media (max-width: 640px) {
+  .overview-tabs {
+    gap: 8px;
+  }
+
+  .overview-tabs__link {
+    padding: 11px 13px;
+    font-size: 14px;
+  }
+}

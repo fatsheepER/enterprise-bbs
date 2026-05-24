@@ -1,0 +1,18 @@
+.placeholder-page {
+  border-radius: 9px;
+  background: #fff;
+  padding: 46px 52px;
+}
+
+.placeholder-page__title {
+  margin: 0 0 12px;
+  font-size: 40px;
+  line-height: 1.14;
+}
+
+.placeholder-page__description {
+  margin: 0;
+  color: #6e6e73;
+  font-size: 18px;
+  line-height: 1.45;
+}

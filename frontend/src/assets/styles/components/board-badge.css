@@ -1,0 +1,14 @@
+.board-badge {
+  display: inline-flex;
+  max-width: 100%;
+  min-height: 25px;
+  align-items: center;
+  border: 2px solid color-mix(in srgb, var(--board-color, #2997ff) 55%, #fff);
+  border-radius: 4px;
+  padding: 3px 12px;
+  background: color-mix(in srgb, var(--board-color, #2997ff) 9%, #fff);
+  color: color-mix(in srgb, var(--board-color, #2997ff) 70%, #1d1d1f);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.1;
+}
