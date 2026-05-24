@@ -14,11 +14,11 @@ const form = reactive({
 })
 const errorMessage = ref('')
 
-function submitLogin() {
+async function submitLogin() {
   errorMessage.value = ''
 
   try {
-    authStore.login(form)
+    await authStore.login(form)
     const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/'
     router.push(redirect)
   } catch (error) {
