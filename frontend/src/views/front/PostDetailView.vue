@@ -2,32 +2,25 @@
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
+import { getPost } from '@/api/posts'
+import { createReply, getPostReplies } from '@/api/replies'
 import arrowUpIcon from '@/assets/arrowshape.up.svg'
 import messageIcon from '@/assets/message.svg'
 import personPlaceholder from '@/assets/person-placeholder.svg'
-import { postDetail, postReplies } from '@/mock/forumViewModels'
 import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const postId = computed(() => Number(route.params.id))
-const post = computed(() => postDetail(postId.value))
+const post = ref(null)
 const replies = ref([])
 const draft = ref('')
 const replyTarget = ref(null)
-const nextReplyId = ref(1)
+const submitError = ref('')
 
 function formatDisplayDate(dateTime) {
   return dateTime?.slice(0, 10) ?? ''
-}
-
-function formatTimestamp(date = new Date()) {
-  const pad = (value) => String(value).padStart(2, '0')
-
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(
-    date.getHours(),
-  )}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
 }
 
 function previewText(content = '', maxLength = 72) {
@@ -36,13 +29,22 @@ function previewText(content = '', maxLength = 72) {
   return normalized.length > maxLength ? `${normalized.slice(0, maxLength)}...` : normalized
 }
 
-function loadReplies() {
-  const page = postReplies(postId.value)
-  replies.value = page.list
-  nextReplyId.value = Math.max(0, ...page.list.map((reply) => reply.id)) + 1
+async function loadPostDetail() {
+  try {
+    const [postDetail, replyList] = await Promise.all([
+      getPost(postId.value),
+      getPostReplies(postId.value),
+    ])
+
+    post.value = postDetail
+    replies.value = replyList
+  } catch {
+    post.value = null
+    replies.value = []
+  }
 }
 
-watch(postId, loadReplies, { immediate: true })
+watch(postId, loadPostDetail, { immediate: true })
 
 const visibleReplyCount = computed(() => replies.value.length)
 const replyPlaceholder = computed(() => `回复： ${replyTarget.value?.contentPreview ?? ''}`)
@@ -73,11 +75,13 @@ function openReplyComposer(target) {
     contentPreview: previewText(target.content),
   }
   draft.value = ''
+  submitError.value = ''
 }
 
 function closeReplyComposer() {
   replyTarget.value = null
   draft.value = ''
+  submitError.value = ''
 }
 
 function openPostReplyComposer() {
@@ -104,7 +108,7 @@ function scrollToReply(replyId) {
   })
 }
 
-function submitReply() {
+async function submitReply() {
   if (!canSubmit.value || !post.value || !replyTarget.value) {
     return
   }
@@ -113,34 +117,18 @@ function submitReply() {
     return
   }
 
-  const currentUser = authStore.currentUser
-  const createdAt = formatTimestamp()
-  const parentReply = replyTarget.value.type === 'reply' ? replyTarget.value : null
-  const newReply = {
-    id: nextReplyId.value,
-    postId: post.value.id,
-    userId: currentUser.id,
-    authorName: currentUser.nickname || currentUser.username || '当前用户',
-    authorAvatar: currentUser.avatar || '',
-    authorRole: currentUser.role || 'USER',
-    parentReplyId: parentReply?.id ?? null,
-    parentReply: parentReply
-      ? {
-          id: parentReply.id,
-          authorName: parentReply.authorName,
-          contentPreview: parentReply.contentPreview,
-        }
-      : null,
-    content: draft.value.trim(),
-    contentPreview: previewText(draft.value),
-    status: 1,
-    createdAt,
-    updatedAt: createdAt,
-  }
+  try {
+    const parentReplyId = replyTarget.value.type === 'reply' ? replyTarget.value.id : null
+    const newReply = await createReply(post.value.id, {
+      parentReplyId,
+      content: draft.value.trim(),
+    })
 
-  replies.value = [...replies.value, newReply]
-  nextReplyId.value += 1
-  closeReplyComposer()
+    replies.value = [...replies.value, newReply]
+    closeReplyComposer()
+  } catch (error) {
+    submitError.value = error.message || '回复失败'
+  }
 }
 </script>
 
@@ -313,7 +301,9 @@ function submitReply() {
         ></textarea>
 
         <div class="reply-composer__footer">
-          <span class="reply-composer__count">{{ draft.length }} / 2000</span>
+          <span class="reply-composer__count">
+            {{ submitError || `${draft.length} / 2000` }}
+          </span>
           <div class="reply-composer__actions">
             <button class="reply-composer__cancel" type="button" @click="closeReplyComposer">
               取消

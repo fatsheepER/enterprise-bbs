@@ -1,13 +1,23 @@
 <script setup>
+import { onMounted, ref } from 'vue'
+
+import { getBoards } from '@/api/boards'
+import { getPosts } from '@/api/posts'
 import BoardCard from '@/components/BoardCard.vue'
 import OverviewTabs from '@/components/OverviewTabs.vue'
-import { visibleBoards, visiblePosts } from '@/mock/forumViewModels'
 
-const boards = visibleBoards()
-const posts = visiblePosts()
+const boards = ref([])
+const posts = ref([])
+
+onMounted(async () => {
+  const [boardList, postList] = await Promise.all([getBoards(), getPosts()])
+
+  boards.value = boardList
+  posts.value = postList
+})
 
 function latestPostsForBoard(boardId) {
-  return posts.filter((post) => post.boardId === boardId).slice(0, 3)
+  return posts.value.filter((post) => post.boardId === boardId).slice(0, 3)
 }
 </script>
 

@@ -1,9 +1,9 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
+import { getAdminReplies, updateAdminReplyStatus } from '@/api/admin'
 import AdminTable from '@/components/AdminTable.vue'
-import { adminReplies, updateAdminReplyStatus } from '@/mock/forumViewModels'
 import { useAuthStore } from '@/stores/auth'
 
 const pageSize = 10
@@ -14,7 +14,7 @@ const router = useRouter()
 
 const idQuery = ref('')
 const keywordQuery = ref('')
-const refreshKey = ref(0)
+const replies = ref([])
 const activePage = ref(1)
 const hiddenPage = ref(1)
 
@@ -58,20 +58,26 @@ const normalizedIdQuery = computed(() => {
 const replyFilters = computed(() => ({
   id: normalizedIdQuery.value,
   keyword: keywordQuery.value,
-  refreshKey: refreshKey.value,
 }))
 
-const filteredReplies = computed(() => {
+async function loadReplies() {
+  if (!authStore.isAdmin) {
+    return
+  }
+
   const { id, keyword } = replyFilters.value
 
-  return adminReplies({
+  replies.value = await getAdminReplies({
     id,
     keyword,
   })
-})
+}
 
-const activeReplies = computed(() => filteredReplies.value.filter((reply) => reply.status === 1))
-const hiddenReplies = computed(() => filteredReplies.value.filter((reply) => reply.status === 0))
+onMounted(loadReplies)
+watch([idQuery, keywordQuery], loadReplies)
+
+const activeReplies = computed(() => replies.value.filter((reply) => reply.status === 1))
+const hiddenReplies = computed(() => replies.value.filter((reply) => reply.status === 0))
 
 const activeTotalPages = computed(() => totalPages(activeReplies.value))
 const hiddenTotalPages = computed(() => totalPages(hiddenReplies.value))
@@ -99,9 +105,9 @@ function splitDateTime(dateTime) {
   }
 }
 
-function setReplyStatus(reply, status) {
-  updateAdminReplyStatus(reply.id, status)
-  refreshKey.value += 1
+async function setReplyStatus(reply, status) {
+  await updateAdminReplyStatus(reply.id, status)
+  await loadReplies()
   activePage.value = Math.min(activePage.value, activeTotalPages.value)
   hiddenPage.value = Math.min(hiddenPage.value, hiddenTotalPages.value)
 }
@@ -139,8 +145,8 @@ function nextHiddenPage() {
       </label>
 
       <label class="admin-replies-filter__field">
-        <span>内容或用户名</span>
-        <input v-model="keywordQuery" type="search" placeholder="按内容或用户名搜索" />
+        <span>内容或帖子标题</span>
+        <input v-model="keywordQuery" type="search" placeholder="按内容或帖子标题搜索" />
       </label>
     </form>
 
