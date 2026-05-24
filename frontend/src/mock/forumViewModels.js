@@ -12,6 +12,14 @@ function byId(items) {
 const boardById = byId(boards)
 const userById = byId(users)
 
+function formatTimestamp(date = new Date()) {
+  const pad = (value) => String(value).padStart(2, '0')
+
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(
+    date.getHours(),
+  )}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+}
+
 function activeReplyCount(postId) {
   return replies.filter((reply) => reply.postId === postId && reply.status === 1).length
 }
@@ -43,8 +51,9 @@ function withPostMeta(post) {
     ...post,
     boardName: board?.name ?? '未知版块',
     boardColorHex: board?.colorHex ?? '#007aff',
-    authorName: author?.nickname || author?.username || '未知用户',
-    authorAvatar: author?.avatar ?? '',
+    authorName: author?.nickname || author?.username || post.authorName || '未知用户',
+    authorAvatar: author?.avatar ?? post.authorAvatar ?? '',
+    authorRole: author?.role ?? post.authorRole ?? 'USER',
     contentPreview: contentPreview(post.content),
     replyCount: activeReplyCount(post.id),
     relativeTime: formatRelativeTime(post.updatedAt),
@@ -62,6 +71,7 @@ function withReplyMeta(reply) {
     ...reply,
     authorName: author?.nickname || author?.username || '未知用户',
     authorAvatar: author?.avatar ?? '',
+    authorRole: author?.role ?? reply.authorRole ?? 'USER',
     contentPreview: contentPreview(reply.content),
     parentReply: parentReply
       ? {
@@ -87,6 +97,7 @@ function withUserReplyMeta(reply) {
     ...reply,
     authorName: author?.nickname || author?.username || '未知用户',
     authorAvatar: author?.avatar ?? '',
+    authorRole: author?.role ?? reply.authorRole ?? 'USER',
     contentPreview: contentPreview(reply.content),
     postTitle: post?.title ?? '未知帖子',
     postContentPreview: contentPreview(post?.content ?? ''),
@@ -144,6 +155,50 @@ export function postDetail(postId) {
   const post = posts.find((item) => item.id === Number(postId) && item.status === 1)
 
   return post ? withPostMeta(post) : null
+}
+
+export function createPost({ boardId, title, content, user }) {
+  if (!user?.id) {
+    throw new Error('请先登录')
+  }
+
+  const normalizedBoardId = Number(boardId)
+  const board = boards.find((item) => item.id === normalizedBoardId && item.status === 1)
+
+  if (!board) {
+    throw new Error('请选择有效版块')
+  }
+
+  const normalizedTitle = title.trim()
+  const normalizedContent = content.trim()
+
+  if (!normalizedTitle) {
+    throw new Error('标题不能为空')
+  }
+
+  if (!normalizedContent) {
+    throw new Error('内容不能为空')
+  }
+
+  const now = formatTimestamp()
+  const post = {
+    id: Math.max(0, ...posts.map((item) => item.id)) + 1,
+    boardId: normalizedBoardId,
+    userId: user.id,
+    authorName: user.nickname || user.username || '当前用户',
+    authorAvatar: user.avatar || '',
+    authorRole: user.role || 'USER',
+    title: normalizedTitle,
+    content: normalizedContent,
+    status: 1,
+    viewCount: 0,
+    createdAt: now,
+    updatedAt: now,
+  }
+
+  posts.push(post)
+
+  return withPostMeta(post)
 }
 
 export function postReplies(postId, { page = 1, pageSize = 20 } = {}) {

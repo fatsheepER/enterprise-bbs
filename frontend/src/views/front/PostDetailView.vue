@@ -122,6 +122,7 @@ function submitReply() {
     userId: currentUser.id,
     authorName: currentUser.nickname || currentUser.username || '当前用户',
     authorAvatar: currentUser.avatar || '',
+    authorRole: currentUser.role || 'USER',
     parentReplyId: parentReply?.id ?? null,
     parentReply: parentReply
       ? {
@@ -161,6 +162,9 @@ function submitReply() {
         <div class="post-block__meta-row">
           <div class="post-block__author-group">
             <strong class="post-block__author">{{ post.authorName }}</strong>
+            <span v-if="post.authorRole === 'ADMIN'" class="post-block__admin-badge">
+              管理员
+            </span>
           </div>
 
           <dl class="post-block__stats" aria-label="帖子数据">
@@ -210,6 +214,9 @@ function submitReply() {
           <div class="post-block__meta-row">
             <div class="post-block__author-group">
               <strong class="post-block__author">{{ reply.authorName }}</strong>
+              <span v-if="reply.authorRole === 'ADMIN'" class="post-block__admin-badge">
+                管理员
+              </span>
               <span
                 v-if="reply.userId === post.userId"
                 class="post-block__op-badge"

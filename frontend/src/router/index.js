@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 import BoardDetailView from '@/views/front/BoardDetailView.vue'
 import BoardsOverviewView from '@/views/front/BoardsOverviewView.vue'
+import CreatePostView from '@/views/front/CreatePostView.vue'
 import PostDetailView from '@/views/front/PostDetailView.vue'
 import PostsView from '@/views/front/PostsView.vue'
 import LoginView from '@/views/front/LoginView.vue'
@@ -36,6 +37,11 @@ const router = createRouter({
       path: '/posts',
       name: 'posts',
       component: PostsView,
+    },
+    {
+      path: '/create-post',
+      name: 'create-post',
+      component: CreatePostView,
     },
     {
       path: '/login',
