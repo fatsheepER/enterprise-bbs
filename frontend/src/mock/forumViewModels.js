@@ -333,6 +333,36 @@ export function updateAdminPostStatus(id, status) {
   return withAdminPostMeta(post)
 }
 
+export function adminReplies({ id, keyword, status } = {}) {
+  const normalizedKeyword = keyword?.trim().toLowerCase() ?? ''
+  const normalizedStatus = status === '' || status == null ? null : Number(status)
+
+  return replies
+    .filter((reply) => matchesOptionalId(reply.id, id))
+    .filter((reply) => normalizedStatus == null || reply.status === normalizedStatus)
+    .map(withAdminReplyMeta)
+    .filter(
+      (reply) =>
+        !normalizedKeyword ||
+        reply.content.toLowerCase().includes(normalizedKeyword) ||
+        reply.authorName.toLowerCase().includes(normalizedKeyword),
+    )
+    .toSorted((left, right) => new Date(right.createdAt) - new Date(left.createdAt))
+}
+
+export function updateAdminReplyStatus(id, status) {
+  const reply = replies.find((item) => item.id === Number(id))
+
+  if (!reply) {
+    throw new Error('回复不存在')
+  }
+
+  reply.status = Number(status) === 0 ? 0 : 1
+  reply.updatedAt = formatTimestamp()
+
+  return withAdminReplyMeta(reply)
+}
+
 export function postDetail(postId) {
   const post = posts.find((item) => item.id === Number(postId) && item.status === 1)
 
