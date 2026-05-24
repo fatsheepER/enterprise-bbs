@@ -146,6 +146,12 @@
         WHERE id = #{id}
     </update>
 
+    <update id="touchUpdatedAt">
+        UPDATE posts
+        SET updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+
     <update id="updateStatus">
         UPDATE posts
         SET status = #{status},
