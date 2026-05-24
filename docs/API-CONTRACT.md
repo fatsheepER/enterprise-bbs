@@ -122,7 +122,7 @@ X-User-Role: ADMIN
 
 - 未登录用户只能访问注册、登录、版块列表、版块详情、帖子列表、帖子详情、回复列表等公开读取接口。
 - 普通用户可以修改自己的资料、发帖、回复、删除自己的帖子和回复。
-- 管理员可以发帖、回复，并可以访问 `/api/admin/**` 接口管理版块和帖子。
+- 管理员可以发帖、回复，并可以访问 `/api/admin/**` 接口管理版块、帖子和回复状态。
 - 后端可以根据 `X-User-Id` 和 `X-User-Role` 做基础权限校验。
 
 ## 4. 分页格式
@@ -826,8 +826,11 @@ GET /api/admin/dashboard/stats
 {
   "userCount": 20,
   "boardCount": 4,
+  "disabledBoardCount": 1,
   "postCount": 80,
-  "replyCount": 240
+  "hiddenPostCount": 6,
+  "replyCount": 240,
+  "hiddenReplyCount": 12
 }
 ```
 
@@ -841,6 +844,7 @@ GET /api/admin/boards
 
 | 参数 | 类型 | 必填 | 默认值 | 说明 |
 | --- | --- | --- | --- | --- |
+| `id` | number | 否 | 空 | 按版块 ID 精确查询 |
 | `keyword` | string | 否 | 空 | 按版块名称模糊搜索 |
 | `status` | number | 否 | 空 | 状态：`1` 正常，`0` 停用 |
 
@@ -958,6 +962,7 @@ GET /api/admin/posts
 | --- | --- | --- | --- | --- |
 | `page` | number | 否 | `1` | 当前页 |
 | `pageSize` | number | 否 | `10` | 每页条数 |
+| `id` | number | 否 | 空 | 按帖子 ID 精确查询 |
 | `boardId` | number | 否 | 空 | 按版块筛选 |
 | `keyword` | string | 否 | 空 | 按标题关键词搜索 |
 | `status` | number | 否 | 空 | 状态：`1` 正常，`0` 隐藏 |
@@ -1014,6 +1019,80 @@ DELETE /api/admin/posts/{id}
 true
 ```
 
+### 10.9 管理端获取帖子回复列表
+
+```text
+GET /api/admin/posts/{postId}/replies
+```
+
+管理员可查看某个帖子下的正常和隐藏回复，用于在帖子管理页中管理回复状态。
+
+路径参数：
+
+| 参数 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `postId` | number | 是 | 帖子 ID |
+
+查询参数：
+
+| 参数 | 类型 | 必填 | 默认值 | 说明 |
+| --- | --- | --- | --- | --- |
+| `page` | number | 否 | `1` | 当前页 |
+| `pageSize` | number | 否 | `20` | 每页条数 |
+| `status` | number | 否 | 空 | 状态：`1` 正常，`0` 隐藏 |
+
+响应 `data`：分页对象，`list` 元素为 `ReplyVO`
+
+### 10.10 修改回复状态
+
+```text
+PUT /api/admin/replies/{id}/status
+```
+
+用于隐藏或恢复回复。
+
+路径参数：
+
+| 参数 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `id` | number | 是 | 回复 ID |
+
+请求体：
+
+```json
+{
+  "status": 0
+}
+```
+
+请求字段：
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `status` | number | 是 | `1` 正常，`0` 隐藏 |
+
+响应 `data`：`ReplyVO`
+
+### 10.11 管理员删除回复
+
+```text
+DELETE /api/admin/replies/{id}
+```
+
+用于管理员从管理端隐藏回复。语义等同于将回复 `status` 更新为 `0`，前端优先使用 `PUT /api/admin/replies/{id}/status` 表达隐藏和恢复。
+
+路径参数：
+
+| 参数 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `id` | number | 是 | 回复 ID |
+
+响应 `data`：
+
+```json
+true
+```
+
 ## 11. 状态码与错误信息
 
 ### 11.1 HTTP 状态码
@@ -1042,7 +1121,7 @@ true
 | `40100` | `请先登录` | 缺少 `X-User-Id` 或登录态无效 |
 | `40300` | `无权限访问` | 普通用户访问管理员接口或操作他人资源 |
 | `40400` | `资源不存在` | 用户、版块、帖子或回复不存在 |
-| `40900` | `资源状态不可用` | 版块停用、帖子隐藏等状态不允许继续操作 |
+| `40900` | `资源状态不可用` | 版块停用、帖子或回复隐藏等状态不允许继续操作 |
 | `50000` | `服务器内部错误` | 未预期服务端异常 |
 
 ### 11.3 常见错误响应
@@ -1118,3 +1197,6 @@ true
 | 管理员 | `GET` | `/api/admin/posts` | 管理员 | 管理端帖子列表 |
 | 管理员 | `PUT` | `/api/admin/posts/{id}/status` | 管理员 | 修改帖子状态 |
 | 管理员 | `DELETE` | `/api/admin/posts/{id}` | 管理员 | 管理员删除或隐藏帖子 |
+| 管理员 | `GET` | `/api/admin/posts/{postId}/replies` | 管理员 | 管理端帖子回复列表 |
+| 管理员 | `PUT` | `/api/admin/replies/{id}/status` | 管理员 | 修改回复状态 |
+| 管理员 | `DELETE` | `/api/admin/replies/{id}` | 管理员 | 管理员删除或隐藏回复 |
