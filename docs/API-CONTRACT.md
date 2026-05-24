@@ -122,7 +122,7 @@ X-User-Role: ADMIN
 
 - 未登录用户只能访问注册、登录、版块列表、版块详情、帖子列表、帖子详情、回复列表等公开读取接口。
 - 普通用户可以修改自己的资料、发帖、回复、删除自己的帖子和回复。
-- 管理员可以访问 `/api/admin/**` 接口，管理版块和帖子。
+- 管理员可以发帖、回复，并可以访问 `/api/admin/**` 接口管理版块和帖子。
 - 后端可以根据 `X-User-Id` 和 `X-User-Role` 做基础权限校验。
 
 ## 4. 分页格式
@@ -211,6 +211,7 @@ X-User-Role: ADMIN
   "userId": 1,
   "authorName": "Alice",
   "authorAvatar": "",
+  "authorRole": "USER",
   "title": "如何统一接口返回格式",
   "contentPreview": "帖子正文摘要，用于列表展示。",
   "status": 1,
@@ -232,6 +233,7 @@ X-User-Role: ADMIN
   "userId": 1,
   "authorName": "Alice",
   "authorAvatar": "",
+  "authorRole": "USER",
   "title": "如何统一接口返回格式",
   "content": "帖子正文内容",
   "status": 1,
@@ -251,6 +253,7 @@ X-User-Role: ADMIN
   "userId": 2,
   "authorName": "Bob",
   "authorAvatar": "",
+  "authorRole": "USER",
   "parentReplyId": null,
   "parentReply": null,
   "content": "我也遇到过这个问题。",
@@ -269,6 +272,7 @@ X-User-Role: ADMIN
   "userId": 3,
   "authorName": "Carol",
   "authorAvatar": "",
+  "authorRole": "USER",
   "parentReplyId": 1,
   "parentReply": {
     "id": 1,
@@ -293,6 +297,7 @@ X-User-Role: ADMIN
   "userId": 2,
   "authorName": "Alice",
   "authorAvatar": "",
+  "authorRole": "USER",
   "parentReplyId": null,
   "content": "我也遇到过这个问题。",
   "status": 1,
@@ -612,6 +617,7 @@ GET /api/posts
       "userId": 1,
       "authorName": "Alice",
       "authorAvatar": "",
+      "authorRole": "USER",
       "title": "如何统一接口返回格式",
       "contentPreview": "我在整理前端 Axios 封装，希望所有接口都返回统一的 code、message、data 和 timestamp...",
       "status": 1,
@@ -652,13 +658,13 @@ GET /api/posts/{id}
 POST /api/posts
 ```
 
-需要登录。
+需要登录。普通用户和管理员均可发表帖子；管理员发帖时仍使用同一接口，不走 `/api/admin/**`。
 
 请求头：
 
 ```text
 X-User-Id: 1
-X-User-Role: USER
+X-User-Role: USER 或 ADMIN
 ```
 
 请求体：
@@ -739,13 +745,13 @@ GET /api/posts/{postId}/replies
 POST /api/posts/{postId}/replies
 ```
 
-需要登录。`parentReplyId` 为空表示直接回复帖子，不为空表示引用式回复某条回复。
+需要登录。普通用户和管理员均可发表回复。`parentReplyId` 为空表示直接回复帖子，不为空表示引用式回复某条回复。
 
 请求头：
 
 ```text
 X-User-Id: 2
-X-User-Role: USER
+X-User-Role: USER 或 ADMIN
 ```
 
 路径参数：
@@ -1099,10 +1105,10 @@ true
 | 版块 | `GET` | `/api/boards/{id}` | 公开 | 获取版块详情 |
 | 帖子 | `GET` | `/api/posts` | 公开 | 获取帖子列表 |
 | 帖子 | `GET` | `/api/posts/{id}` | 公开 | 获取帖子详情 |
-| 帖子 | `POST` | `/api/posts` | 登录 | 发表帖子 |
+| 帖子 | `POST` | `/api/posts` | 登录（USER/ADMIN） | 发表帖子 |
 | 帖子 | `DELETE` | `/api/posts/{id}` | 登录 | 删除自己的帖子 |
 | 回复 | `GET` | `/api/posts/{postId}/replies` | 公开 | 获取帖子回复 |
-| 回复 | `POST` | `/api/posts/{postId}/replies` | 登录 | 发表回复 |
+| 回复 | `POST` | `/api/posts/{postId}/replies` | 登录（USER/ADMIN） | 发表回复 |
 | 回复 | `DELETE` | `/api/replies/{id}` | 登录 | 删除自己的回复 |
 | 管理员 | `GET` | `/api/admin/dashboard/stats` | 管理员 | 管理端统计 |
 | 管理员 | `GET` | `/api/admin/boards` | 管理员 | 管理端版块列表 |
