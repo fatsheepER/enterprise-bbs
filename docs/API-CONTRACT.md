@@ -272,7 +272,7 @@ X-User-Role: ADMIN
 
 ### 5.6 UserReplyListItemVO
 
-用于个人主页展示当前登录用户发表过的回复。`reference` 字段永远存在：如果 `parentReplyId` 不为空，引用父回复摘要；如果 `parentReplyId` 为空，引用原帖摘要。
+用于个人主页展示当前登录用户发表过的可见回复。所属帖子或版块不可见时，该回复不返回。`reference` 字段永远存在：如果 `parentReplyId` 不为空，引用父回复摘要；如果 `parentReplyId` 为空，引用原帖摘要。
 
 ```json
 {
@@ -527,7 +527,7 @@ true
 GET /api/user/replies
 ```
 
-需要登录。用于个人主页展示当前登录用户发表过的回复。
+需要登录。用于个人主页展示当前登录用户发表过的回复；仅返回回复、所属帖子和所属版块均为 `status=1` 的数据。
 
 请求头：
 
@@ -602,7 +602,7 @@ GET /api/boards/{id}
 GET /api/posts
 ```
 
-公开接口。前台默认只返回 `status=1` 的帖子。
+公开接口。前台默认只返回帖子自身和所属版块均为 `status=1` 的帖子。
 
 查询参数：
 
@@ -613,7 +613,7 @@ GET /api/posts
 | `keyword` | string | 否 | 空 | 去除首尾空白后，仅按帖子标题做不区分大小写的包含搜索 |
 | `sort` | string | 否 | `latest` | 排序值：`latest`、`views`、`replies`；兼容保留 `newest` |
 
-`boardId`、`userId`、`keyword` 和 `sort` 可以组合使用；前台仍只返回 `status=1` 的帖子。
+`boardId`、`userId`、`keyword` 和 `sort` 可以组合使用；前台仍只返回帖子自身和所属版块均为 `status=1` 的帖子，因此 `/profile` 不展示已停用版块下的用户发帖。
 
 排序规则：
 
@@ -658,7 +658,7 @@ GET /api/posts
 GET /api/posts/{id}
 ```
 
-公开接口。后端可以在访问详情时将 `viewCount` 加 1。
+公开接口。仅帖子自身和所属版块均为 `status=1` 时可访问；后端可以在访问详情时将 `viewCount` 加 1。
 
 路径参数：
 
@@ -738,7 +738,7 @@ true
 GET /api/posts/{postId}/replies
 ```
 
-公开接口。前台默认只返回 `status=1` 的回复。
+公开接口。仅所属帖子及版块可见时可读取；前台默认只返回 `status=1` 的回复。
 
 路径参数：
 
@@ -969,7 +969,7 @@ true
 GET /api/admin/posts
 ```
 
-管理员可查看正常和隐藏帖子。
+管理员可查看正常和隐藏帖子，包括所属版块已停用的帖子。
 
 查询参数：
 
@@ -1038,7 +1038,7 @@ true
 GET /api/admin/replies
 ```
 
-管理员可查看全部正常和隐藏回复，用于独立的回复管理页。
+管理员可查看全部正常和隐藏回复，包括所属版块已停用的帖子下的回复，用于独立的回复管理页。
 
 查询参数：
 
