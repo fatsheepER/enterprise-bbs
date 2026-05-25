@@ -95,11 +95,13 @@
         <include refid="PostVOSelect"/>
         WHERE p.id = #{id}
           AND p.status = 1
+          AND b.status = 1
     </select>
 
     <select id="selectVisiblePosts" resultMap="PostListItemVOResultMap">
         <include refid="PostVOSelect"/>
         WHERE p.status = 1
+          AND b.status = 1
         <if test="boardId != null">
           AND p.board_id = #{boardId}
         </if>
