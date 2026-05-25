@@ -3,8 +3,8 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import { updateAdminPostStatus, updateAdminReplyStatus } from '@/api/admin'
-import { getPost } from '@/api/posts'
-import { createReply, getPostReplies } from '@/api/replies'
+import { deletePost, getPost } from '@/api/posts'
+import { createReply, deleteReply, getPostReplies } from '@/api/replies'
 import arrowUpIcon from '@/assets/arrowshape.up.svg'
 import messageIcon from '@/assets/message.svg'
 import personPlaceholder from '@/assets/person-placeholder.svg'
@@ -22,11 +22,19 @@ const submitError = ref('')
 const hideConfirmationActive = ref(false)
 const hidingPost = ref(false)
 const hidePostError = ref('')
+const deleteConfirmationActive = ref(false)
+const deletingPost = ref(false)
+const deletePostError = ref('')
 const confirmingReplyIds = ref(new Set())
 const hidingReplyIds = ref(new Set())
 const hideReplyErrors = ref({})
+const confirmingDeleteReplyIds = ref(new Set())
+const deletingReplyIds = ref(new Set())
+const deleteReplyErrors = ref({})
 let hideConfirmationTimer = null
+let deleteConfirmationTimer = null
 const hideReplyTimers = new Map()
+const deleteReplyTimers = new Map()
 
 function formatDisplayDate(dateTime) {
   return dateTime?.slice(0, 10) ?? ''
@@ -48,9 +56,13 @@ function previewText(content = '', maxLength = 72) {
 
 async function loadPostDetail() {
   clearHideConfirmation()
+  clearDeleteConfirmation()
   clearAllReplyHideConfirmations()
+  clearAllReplyDeleteConfirmations()
   hidePostError.value = ''
+  deletePostError.value = ''
   hideReplyErrors.value = {}
+  deleteReplyErrors.value = {}
 
   try {
     const [postDetail, replyList] = await Promise.all([
@@ -68,11 +80,20 @@ async function loadPostDetail() {
 
 watch(postId, loadPostDetail, { immediate: true })
 onBeforeUnmount(clearHideConfirmation)
+onBeforeUnmount(clearDeleteConfirmation)
 onBeforeUnmount(clearAllReplyHideConfirmations)
+onBeforeUnmount(clearAllReplyDeleteConfirmations)
 
 const visibleReplyCount = computed(() => replies.value.length)
 const replyPlaceholder = computed(() => `回复： ${replyTarget.value?.contentPreview ?? ''}`)
 const canSubmit = computed(() => draft.value.trim().length > 0)
+const canDeletePost = computed(
+  () => post.value?.userId === authStore.currentUser?.id,
+)
+
+function canDeleteReply(reply) {
+  return reply.userId === authStore.currentUser?.id
+}
 
 function requireLogin() {
   if (authStore.isLoggedIn) {
@@ -169,6 +190,43 @@ async function hidePost() {
   }
 }
 
+function clearDeleteConfirmation() {
+  if (deleteConfirmationTimer !== null) {
+    window.clearTimeout(deleteConfirmationTimer)
+    deleteConfirmationTimer = null
+  }
+
+  deleteConfirmationActive.value = false
+}
+
+async function deleteOwnPost() {
+  if (!post.value || deletingPost.value) {
+    return
+  }
+
+  deletePostError.value = ''
+
+  if (!deleteConfirmationActive.value) {
+    deleteConfirmationActive.value = true
+    deleteConfirmationTimer = window.setTimeout(clearDeleteConfirmation, 5000)
+    return
+  }
+
+  clearDeleteConfirmation()
+  deletingPost.value = true
+
+  try {
+    const boardId = post.value.boardId
+
+    await deletePost(post.value.id)
+    await router.push({ name: 'board-detail', params: { id: boardId } })
+  } catch (error) {
+    deletePostError.value = error.message || '删除帖子失败'
+  } finally {
+    deletingPost.value = false
+  }
+}
+
 function hasReplyHideConfirmation(replyId) {
   return confirmingReplyIds.value.has(replyId)
 }
@@ -210,6 +268,22 @@ function clearReplyHideError(replyId) {
   hideReplyErrors.value = nextErrors
 }
 
+function removeReplyFromList(replyId) {
+  replies.value = replies.value
+    .filter((reply) => reply.id !== replyId)
+    .map((reply) => {
+      if (reply.parentReply?.id !== replyId) {
+        return reply
+      }
+
+      return { ...reply, parentReply: null }
+    })
+
+  if (replyTarget.value?.type === 'reply' && replyTarget.value.id === replyId) {
+    closeReplyComposer()
+  }
+}
+
 async function hideReply(replyId) {
   if (isHidingReply(replyId)) {
     return
@@ -234,20 +308,7 @@ async function hideReply(replyId) {
 
   try {
     await updateAdminReplyStatus(replyId, 0)
-
-    replies.value = replies.value
-      .filter((reply) => reply.id !== replyId)
-      .map((reply) => {
-        if (reply.parentReply?.id !== replyId) {
-          return reply
-        }
-
-        return { ...reply, parentReply: null }
-      })
-
-    if (replyTarget.value?.type === 'reply' && replyTarget.value.id === replyId) {
-      closeReplyComposer()
-    }
+    removeReplyFromList(replyId)
   } catch (error) {
     hideReplyErrors.value = {
       ...hideReplyErrors.value,
@@ -258,6 +319,85 @@ async function hideReply(replyId) {
 
     nextIds.delete(replyId)
     hidingReplyIds.value = nextIds
+  }
+}
+
+function hasReplyDeleteConfirmation(replyId) {
+  return confirmingDeleteReplyIds.value.has(replyId)
+}
+
+function isDeletingReply(replyId) {
+  return deletingReplyIds.value.has(replyId)
+}
+
+function clearReplyDeleteConfirmation(replyId) {
+  const timer = deleteReplyTimers.get(replyId)
+
+  if (timer !== undefined) {
+    window.clearTimeout(timer)
+    deleteReplyTimers.delete(replyId)
+  }
+
+  if (confirmingDeleteReplyIds.value.has(replyId)) {
+    const nextIds = new Set(confirmingDeleteReplyIds.value)
+
+    nextIds.delete(replyId)
+    confirmingDeleteReplyIds.value = nextIds
+  }
+}
+
+function clearAllReplyDeleteConfirmations() {
+  deleteReplyTimers.forEach((timer) => window.clearTimeout(timer))
+  deleteReplyTimers.clear()
+  confirmingDeleteReplyIds.value = new Set()
+}
+
+function clearReplyDeleteError(replyId) {
+  if (!deleteReplyErrors.value[replyId]) {
+    return
+  }
+
+  const nextErrors = { ...deleteReplyErrors.value }
+
+  delete nextErrors[replyId]
+  deleteReplyErrors.value = nextErrors
+}
+
+async function deleteOwnReply(replyId) {
+  if (isDeletingReply(replyId)) {
+    return
+  }
+
+  clearReplyDeleteError(replyId)
+
+  if (!hasReplyDeleteConfirmation(replyId)) {
+    const nextIds = new Set(confirmingDeleteReplyIds.value)
+
+    nextIds.add(replyId)
+    confirmingDeleteReplyIds.value = nextIds
+    deleteReplyTimers.set(
+      replyId,
+      window.setTimeout(() => clearReplyDeleteConfirmation(replyId), 5000),
+    )
+    return
+  }
+
+  clearReplyDeleteConfirmation(replyId)
+  deletingReplyIds.value = new Set(deletingReplyIds.value).add(replyId)
+
+  try {
+    await deleteReply(replyId)
+    removeReplyFromList(replyId)
+  } catch (error) {
+    deleteReplyErrors.value = {
+      ...deleteReplyErrors.value,
+      [replyId]: error.message || '删除回复失败',
+    }
+  } finally {
+    const nextIds = new Set(deletingReplyIds.value)
+
+    nextIds.delete(replyId)
+    deletingReplyIds.value = nextIds
   }
 }
 
@@ -406,6 +546,13 @@ async function submitReply() {
             >
               {{ hideReplyErrors[reply.id] }}
             </span>
+            <span
+              v-if="deleteReplyErrors[reply.id]"
+              class="post-detail__reply-moderation-error"
+              role="alert"
+            >
+              {{ deleteReplyErrors[reply.id] }}
+            </span>
             <button
               v-if="authStore.isAdmin"
               class="post-detail__reply-moderation-button"
@@ -422,6 +569,26 @@ async function submitReply() {
                   : hasReplyHideConfirmation(reply.id)
                     ? '确定'
                     : '隐藏'
+              }}
+            </button>
+            <button
+              v-if="canDeleteReply(reply)"
+              class="post-detail__reply-moderation-button post-detail__reply-moderation-button--delete"
+              :class="{
+                'post-detail__reply-moderation-button--confirm':
+                  hasReplyDeleteConfirmation(reply.id),
+                'post-detail__reply-moderation-button--deleting': isDeletingReply(reply.id),
+              }"
+              type="button"
+              :disabled="isDeletingReply(reply.id)"
+              @click="deleteOwnReply(reply.id)"
+            >
+              {{
+                isDeletingReply(reply.id)
+                  ? '删除中...'
+                  : hasReplyDeleteConfirmation(reply.id)
+                    ? '确定'
+                    : '删除'
               }}
             </button>
             <button
@@ -476,6 +643,22 @@ async function submitReply() {
       </button>
       <p v-if="hidePostError" class="post-detail__moderation-error" role="alert">
         {{ hidePostError }}
+      </p>
+      <button
+        v-if="canDeletePost"
+        class="post-detail__moderation-button post-detail__moderation-button--delete"
+        :class="{
+          'post-detail__moderation-button--confirm': deleteConfirmationActive,
+          'post-detail__moderation-button--deleting': deletingPost,
+        }"
+        type="button"
+        :disabled="deletingPost"
+        @click="deleteOwnPost"
+      >
+        {{ deletingPost ? '删除中...' : deleteConfirmationActive ? '确定删除' : '删除帖子' }}
+      </button>
+      <p v-if="deletePostError" class="post-detail__moderation-error" role="alert">
+        {{ deletePostError }}
       </p>
     </div>
 

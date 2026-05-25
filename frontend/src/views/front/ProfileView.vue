@@ -1,8 +1,9 @@
 <script setup>
-import { computed, onMounted, ref, watchEffect } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import { getPosts } from '@/api/posts'
+import { deleteReply } from '@/api/replies'
 import PostTable from '@/components/PostTable.vue'
 import eyeIcon from '@/assets/eye.svg'
 import gearIcon from '@/assets/gear.svg'
@@ -16,6 +17,10 @@ const router = useRouter()
 const activeTab = ref('posts')
 const userPosts = ref([])
 const userReplyList = ref([])
+const confirmingDeleteReplyIds = ref(new Set())
+const deletingReplyIds = ref(new Set())
+const deleteReplyErrors = ref({})
+const deleteReplyTimers = new Map()
 
 watchEffect(() => {
   if (!authStore.isLoggedIn) {
@@ -44,9 +49,89 @@ onMounted(async () => {
   userPosts.value = postList
   userReplyList.value = replyList
 })
+onBeforeUnmount(clearAllReplyDeleteConfirmations)
 
 function formatDisplayDate(dateTime) {
   return dateTime?.slice(0, 10) ?? ''
+}
+
+function hasReplyDeleteConfirmation(replyId) {
+  return confirmingDeleteReplyIds.value.has(replyId)
+}
+
+function isDeletingReply(replyId) {
+  return deletingReplyIds.value.has(replyId)
+}
+
+function clearReplyDeleteConfirmation(replyId) {
+  const timer = deleteReplyTimers.get(replyId)
+
+  if (timer !== undefined) {
+    window.clearTimeout(timer)
+    deleteReplyTimers.delete(replyId)
+  }
+
+  if (confirmingDeleteReplyIds.value.has(replyId)) {
+    const nextIds = new Set(confirmingDeleteReplyIds.value)
+
+    nextIds.delete(replyId)
+    confirmingDeleteReplyIds.value = nextIds
+  }
+}
+
+function clearAllReplyDeleteConfirmations() {
+  deleteReplyTimers.forEach((timer) => window.clearTimeout(timer))
+  deleteReplyTimers.clear()
+  confirmingDeleteReplyIds.value = new Set()
+}
+
+function clearReplyDeleteError(replyId) {
+  if (!deleteReplyErrors.value[replyId]) {
+    return
+  }
+
+  const nextErrors = { ...deleteReplyErrors.value }
+
+  delete nextErrors[replyId]
+  deleteReplyErrors.value = nextErrors
+}
+
+async function deleteOwnReply(replyId) {
+  if (isDeletingReply(replyId)) {
+    return
+  }
+
+  clearReplyDeleteError(replyId)
+
+  if (!hasReplyDeleteConfirmation(replyId)) {
+    const nextIds = new Set(confirmingDeleteReplyIds.value)
+
+    nextIds.add(replyId)
+    confirmingDeleteReplyIds.value = nextIds
+    deleteReplyTimers.set(
+      replyId,
+      window.setTimeout(() => clearReplyDeleteConfirmation(replyId), 5000),
+    )
+    return
+  }
+
+  clearReplyDeleteConfirmation(replyId)
+  deletingReplyIds.value = new Set(deletingReplyIds.value).add(replyId)
+
+  try {
+    await deleteReply(replyId)
+    userReplyList.value = userReplyList.value.filter((reply) => reply.id !== replyId)
+  } catch (error) {
+    deleteReplyErrors.value = {
+      ...deleteReplyErrors.value,
+      [replyId]: error.message || '删除回复失败',
+    }
+  } finally {
+    const nextIds = new Set(deletingReplyIds.value)
+
+    nextIds.delete(replyId)
+    deletingReplyIds.value = nextIds
+  }
 }
 </script>
 
@@ -174,6 +259,32 @@ function formatDisplayDate(dateTime) {
               <p class="post-block__content">{{ reply.content }}</p>
 
               <div class="post-block__actions">
+                <span
+                  v-if="deleteReplyErrors[reply.id]"
+                  class="profile-reply__delete-error"
+                  role="alert"
+                >
+                  {{ deleteReplyErrors[reply.id] }}
+                </span>
+                <button
+                  class="profile-reply__delete-button"
+                  :class="{
+                    'profile-reply__delete-button--confirm':
+                      hasReplyDeleteConfirmation(reply.id),
+                    'profile-reply__delete-button--deleting': isDeletingReply(reply.id),
+                  }"
+                  type="button"
+                  :disabled="isDeletingReply(reply.id)"
+                  @click="deleteOwnReply(reply.id)"
+                >
+                  {{
+                    isDeletingReply(reply.id)
+                      ? '删除中...'
+                      : hasReplyDeleteConfirmation(reply.id)
+                        ? '确定'
+                        : '删除'
+                  }}
+                </button>
                 <RouterLink
                   class="reply-button profile-reply__view-button"
                   :to="`/posts/${reply.postId}#reply-${reply.id}`"
