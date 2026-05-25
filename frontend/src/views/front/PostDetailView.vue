@@ -32,6 +32,10 @@ function formatDisplayDate(dateTime) {
   return dateTime?.slice(0, 10) ?? ''
 }
 
+function formatDisplayTime(dateTime) {
+  return dateTime?.slice(11, 16) ?? ''
+}
+
 function avatarSrc(avatar) {
   return avatar || personPlaceholder
 }
@@ -315,8 +319,9 @@ async function submitReply() {
               <dt>浏览</dt>
               <dd>{{ post.viewCount }}</dd>
             </div>
-            <div class="post-block__author-group">
+            <div class="post-block__timestamp">
               <span class="post-block__date">{{ formatDisplayDate(post.createdAt) }}</span>
+              <span class="post-block__time">{{ formatDisplayTime(post.createdAt) }}</span>
             </div>
           </dl>
         </div>
@@ -367,7 +372,10 @@ async function submitReply() {
 
             <div class="post-block__time-group">
               <span class="post-block__reply-id">#{{ reply.id }}</span>
-              <span class="post-block__date">{{ formatDisplayDate(reply.createdAt) }}</span>
+              <div class="post-block__timestamp">
+                <span class="post-block__date">{{ formatDisplayDate(reply.createdAt) }}</span>
+                <span class="post-block__time">{{ formatDisplayTime(reply.createdAt) }}</span>
+              </div>
             </div>
           </div>
         </div>

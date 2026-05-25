@@ -64,6 +64,20 @@
   line-height: 1.35;
 }
 
+.post-block__timestamp {
+  display: inline-flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.post-block__time {
+  color: #6e6e73;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
 .post-block__op-badge {
   color: #006bd6;
   font-size: 15px;
@@ -98,6 +112,7 @@
 .post-block__stats {
   display: flex;
   flex: 0 0 auto;
+  align-items: center;
   gap: 28px;
   margin: 0;
 }
