@@ -57,7 +57,10 @@
 
 .create-post-field__select {
   appearance: none;
-  background-image: linear-gradient(45deg, transparent 50%, #6e6e73 50%),
+  cursor: pointer;
+  text-align: left;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #6e6e73 50%),
     linear-gradient(135deg, #6e6e73 50%, transparent 50%);
   background-position:
     calc(100% - 21px) 22px,
@@ -67,6 +70,77 @@
     6px 6px,
     6px 6px;
   padding-right: 44px;
+}
+
+.create-post-board-select {
+  position: relative;
+}
+
+.create-post-board-select__trigger--selected {
+  border-color: var(--board-color, #06c);
+}
+
+.create-post-board-select__trigger--selected:focus {
+  border-color: var(--board-color, #06c);
+  box-shadow: 0 0 0 1px var(--board-color, #06c);
+}
+
+.create-post-board-select__value {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.create-post-board-select__placeholder {
+  color: #6e6e73;
+}
+
+.create-post-board-select__dot {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--board-color, #2997ff);
+}
+
+.create-post-board-select__options {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 100%;
+  max-height: 280px;
+  overflow-y: auto;
+  border: 1px solid #d2d2d7;
+  border-radius: 12px;
+  background: #fff;
+  padding: 6px;
+  box-shadow: 0 8px 22px rgb(0 0 0 / 12%);
+}
+
+.create-post-board-select__option {
+  display: flex;
+  width: 100%;
+  min-height: 42px;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  padding: 0 10px;
+  color: #1d1d1f;
+  font-size: 16px;
+  text-align: left;
+}
+
+.create-post-board-select__option:hover,
+.create-post-board-select__option:focus-visible,
+.create-post-board-select__option--selected {
+  background: color-mix(in srgb, var(--board-color, #2997ff) 10%, #fff);
+}
+
+.create-post-board-select__option:focus-visible {
+  outline: 1px solid var(--board-color, #06c);
 }
 
 .create-post-field__error,

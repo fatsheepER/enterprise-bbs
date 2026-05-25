@@ -51,12 +51,13 @@ function postActivity(post) {
                 </RouterLink>
               </h2>
               <p class="posts-table__excerpt">{{ postPreview(post) }}</p>
-              <span
+              <RouterLink
                 class="board-badge posts-table__badge"
+                :to="{ name: 'board-detail', params: { id: post.boardId } }"
                 :style="{ '--board-color': post.boardColorHex }"
               >
                 {{ post.boardName }}
-              </span>
+              </RouterLink>
             </td>
 
             <td class="posts-table__stat" aria-label="回复数">{{ post.replyCount }}</td>

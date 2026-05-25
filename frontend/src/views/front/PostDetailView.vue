@@ -285,9 +285,13 @@ async function submitReply() {
   <section v-if="post" class="post-detail">
     <header class="post-detail__header">
       <h1 class="post-detail__title">{{ post.title }}</h1>
-      <span class="board-badge" :style="{ '--board-color': post.boardColorHex }">
+      <RouterLink
+        class="board-badge"
+        :to="{ name: 'board-detail', params: { id: post.boardId } }"
+        :style="{ '--board-color': post.boardColorHex }"
+      >
         {{ post.boardName }}
-      </span>
+      </RouterLink>
     </header>
 
     <article class="post-block post-block--main">

@@ -171,15 +171,22 @@ function nextHiddenPage() {
         empty-text="暂无正常帖子"
       >
         <template #cell-title="{ row, value }">
-          <RouterLink class="admin-posts-title-link" :to="{ name: 'post-detail', params: { id: row.id } }">
+          <RouterLink
+            class="admin-posts-title-link"
+            :to="{ name: 'post-detail', params: { id: row.id } }"
+          >
             {{ value }}
           </RouterLink>
         </template>
 
         <template #cell-boardName="{ row, value }">
-          <span class="board-badge admin-posts-board-badge" :style="{ '--board-color': row.boardColorHex }">
+          <RouterLink
+            class="board-badge admin-posts-board-badge"
+            :to="{ name: 'board-detail', params: { id: row.boardId } }"
+            :style="{ '--board-color': row.boardColorHex }"
+          >
             {{ value }}
-          </span>
+          </RouterLink>
         </template>
 
         <template #cell-latestReplyTime="{ value }">
@@ -205,11 +212,7 @@ function nextHiddenPage() {
           上一页
         </button>
         <span>{{ activePage }} / {{ activeTotalPages }}</span>
-        <button
-          type="button"
-          :disabled="activePage === activeTotalPages"
-          @click="nextActivePage"
-        >
+        <button type="button" :disabled="activePage === activeTotalPages" @click="nextActivePage">
           下一页
         </button>
       </nav>
@@ -230,15 +233,22 @@ function nextHiddenPage() {
         empty-text="暂无隐藏帖子"
       >
         <template #cell-title="{ row, value }">
-          <RouterLink class="admin-posts-title-link" :to="{ name: 'post-detail', params: { id: row.id } }">
+          <RouterLink
+            class="admin-posts-title-link"
+            :to="{ name: 'post-detail', params: { id: row.id } }"
+          >
             {{ value }}
           </RouterLink>
         </template>
 
         <template #cell-boardName="{ row, value }">
-          <span class="board-badge admin-posts-board-badge" :style="{ '--board-color': row.boardColorHex }">
+          <RouterLink
+            class="board-badge admin-posts-board-badge"
+            :to="{ name: 'board-detail', params: { id: row.boardId } }"
+            :style="{ '--board-color': row.boardColorHex }"
+          >
             {{ value }}
-          </span>
+          </RouterLink>
         </template>
 
         <template #cell-latestReplyTime="{ value }">
@@ -260,11 +270,7 @@ function nextHiddenPage() {
           上一页
         </button>
         <span>{{ hiddenPage }} / {{ hiddenTotalPages }}</span>
-        <button
-          type="button"
-          :disabled="hiddenPage === hiddenTotalPages"
-          @click="nextHiddenPage"
-        >
+        <button type="button" :disabled="hiddenPage === hiddenTotalPages" @click="nextHiddenPage">
           下一页
         </button>
       </nav>

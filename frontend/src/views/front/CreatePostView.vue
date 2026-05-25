@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, reactive, ref, watchEffect } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import { getBoards } from '@/api/boards'
@@ -14,6 +14,8 @@ const route = useRoute()
 const router = useRouter()
 
 const boards = ref([])
+const boardSelectRef = ref(null)
+const isBoardSelectOpen = ref(false)
 const form = reactive({
   title: '',
   content: '',
@@ -31,7 +33,20 @@ const selectedBoard = computed(() =>
 )
 
 onMounted(async () => {
+  document.addEventListener('pointerdown', handleDocumentPointerDown)
+  document.addEventListener('keydown', handleEscape)
+
   boards.value = await getBoards()
+
+  const initialBoardId = Number(route.query.boardId)
+  if (boards.value.some((board) => board.id === initialBoardId)) {
+    form.boardId = initialBoardId
+  }
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('pointerdown', handleDocumentPointerDown)
+  document.removeEventListener('keydown', handleEscape)
 })
 
 watchEffect(() => {
@@ -42,6 +57,27 @@ watchEffect(() => {
     })
   }
 })
+
+function toggleBoardSelect() {
+  isBoardSelectOpen.value = !isBoardSelectOpen.value
+}
+
+function selectBoard(board) {
+  form.boardId = board.id
+  isBoardSelectOpen.value = false
+}
+
+function handleDocumentPointerDown(event) {
+  if (!boardSelectRef.value?.contains(event.target)) {
+    isBoardSelectOpen.value = false
+  }
+}
+
+function handleEscape(event) {
+  if (event.key === 'Escape') {
+    isBoardSelectOpen.value = false
+  }
+}
 
 function clearErrors() {
   for (const key of Object.keys(errors)) {
@@ -115,6 +151,57 @@ async function submitPost() {
         <span v-if="errors.title" class="create-post-field__error">{{ errors.title }}</span>
       </label>
 
+      <div class="create-post-field create-post-field--select">
+        <span id="create-post-board-label" class="create-post-field__label">版块</span>
+        <div ref="boardSelectRef" class="create-post-board-select">
+          <button
+            class="create-post-field__input create-post-field__select create-post-board-select__trigger"
+            :class="{ 'create-post-board-select__trigger--selected': selectedBoard }"
+            :style="{ '--board-color': selectedBoard?.colorHex }"
+            type="button"
+            aria-haspopup="listbox"
+            aria-labelledby="create-post-board-label"
+            :aria-expanded="isBoardSelectOpen"
+            @click="toggleBoardSelect"
+          >
+            <span v-if="selectedBoard" class="create-post-board-select__value">
+              <span
+                class="create-post-board-select__dot"
+                :style="{ '--board-color': selectedBoard.colorHex }"
+                aria-hidden="true"
+              ></span>
+              {{ selectedBoard.name }}
+            </span>
+            <span v-else class="create-post-board-select__placeholder">选择版块</span>
+          </button>
+
+          <div
+            v-if="isBoardSelectOpen"
+            class="create-post-board-select__options"
+            role="listbox"
+            aria-labelledby="create-post-board-label"
+          >
+            <button
+              v-for="board in boards"
+              :key="board.id"
+              class="create-post-board-select__option"
+              :class="{
+                'create-post-board-select__option--selected': board.id === selectedBoard?.id,
+              }"
+              :style="{ '--board-color': board.colorHex }"
+              type="button"
+              role="option"
+              :aria-selected="board.id === selectedBoard?.id"
+              @click="selectBoard(board)"
+            >
+              <span class="create-post-board-select__dot" aria-hidden="true"></span>
+              {{ board.name }}
+            </button>
+          </div>
+        </div>
+        <span v-if="errors.boardId" class="create-post-field__error">{{ errors.boardId }}</span>
+      </div>
+
       <label class="create-post-field">
         <span class="create-post-field__label">内容</span>
         <textarea
@@ -126,17 +213,6 @@ async function submitPost() {
         ></textarea>
         <span v-if="errors.content" class="create-post-field__error">{{ errors.content }}</span>
         <span class="create-post-field__counter">{{ form.content.trim().length }} / 5000</span>
-      </label>
-
-      <label class="create-post-field create-post-field--select">
-        <span class="create-post-field__label">版块</span>
-        <select v-model="form.boardId" class="create-post-field__input create-post-field__select">
-          <option value="" disabled>选择版块</option>
-          <option v-for="board in boards" :key="board.id" :value="board.id">
-            {{ board.name }}
-          </option>
-        </select>
-        <span v-if="errors.boardId" class="create-post-field__error">{{ errors.boardId }}</span>
       </label>
 
       <p v-if="submitError" class="create-post-form__error">{{ submitError }}</p>
