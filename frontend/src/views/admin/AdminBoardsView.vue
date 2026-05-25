@@ -195,6 +195,15 @@ function splitDateTime(dateTime) {
         aria-label="启用版块列表"
         empty-text="暂无启用版块"
       >
+        <template #cell-name="{ row, value }">
+          <RouterLink
+            class="admin-boards-table__name-link"
+            :to="{ name: 'board-detail', params: { id: row.id } }"
+          >
+            {{ value }}
+          </RouterLink>
+        </template>
+
         <template #cell-colorHex="{ value }">
           <span
             class="admin-boards-color__swatch"
