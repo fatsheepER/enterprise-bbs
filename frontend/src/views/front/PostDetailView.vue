@@ -1,7 +1,8 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
+import { updateAdminPostStatus, updateAdminReplyStatus } from '@/api/admin'
 import { getPost } from '@/api/posts'
 import { createReply, getPostReplies } from '@/api/replies'
 import arrowUpIcon from '@/assets/arrowshape.up.svg'
@@ -18,6 +19,14 @@ const replies = ref([])
 const draft = ref('')
 const replyTarget = ref(null)
 const submitError = ref('')
+const hideConfirmationActive = ref(false)
+const hidingPost = ref(false)
+const hidePostError = ref('')
+const confirmingReplyIds = ref(new Set())
+const hidingReplyIds = ref(new Set())
+const hideReplyErrors = ref({})
+let hideConfirmationTimer = null
+const hideReplyTimers = new Map()
 
 function formatDisplayDate(dateTime) {
   return dateTime?.slice(0, 10) ?? ''
@@ -34,6 +43,11 @@ function previewText(content = '', maxLength = 72) {
 }
 
 async function loadPostDetail() {
+  clearHideConfirmation()
+  clearAllReplyHideConfirmations()
+  hidePostError.value = ''
+  hideReplyErrors.value = {}
+
   try {
     const [postDetail, replyList] = await Promise.all([
       getPost(postId.value),
@@ -49,6 +63,8 @@ async function loadPostDetail() {
 }
 
 watch(postId, loadPostDetail, { immediate: true })
+onBeforeUnmount(clearHideConfirmation)
+onBeforeUnmount(clearAllReplyHideConfirmations)
 
 const visibleReplyCount = computed(() => replies.value.length)
 const replyPlaceholder = computed(() => `回复： ${replyTarget.value?.contentPreview ?? ''}`)
@@ -112,6 +128,135 @@ function scrollToReply(replyId) {
   })
 }
 
+function clearHideConfirmation() {
+  if (hideConfirmationTimer !== null) {
+    window.clearTimeout(hideConfirmationTimer)
+    hideConfirmationTimer = null
+  }
+
+  hideConfirmationActive.value = false
+}
+
+async function hidePost() {
+  if (!post.value || hidingPost.value) {
+    return
+  }
+
+  hidePostError.value = ''
+
+  if (!hideConfirmationActive.value) {
+    hideConfirmationActive.value = true
+    hideConfirmationTimer = window.setTimeout(clearHideConfirmation, 5000)
+    return
+  }
+
+  clearHideConfirmation()
+  hidingPost.value = true
+
+  try {
+    const boardId = post.value.boardId
+
+    await updateAdminPostStatus(post.value.id, 0)
+    await router.push({ name: 'board-detail', params: { id: boardId } })
+  } catch (error) {
+    hidePostError.value = error.message || '隐藏帖子失败'
+  } finally {
+    hidingPost.value = false
+  }
+}
+
+function hasReplyHideConfirmation(replyId) {
+  return confirmingReplyIds.value.has(replyId)
+}
+
+function isHidingReply(replyId) {
+  return hidingReplyIds.value.has(replyId)
+}
+
+function clearReplyHideConfirmation(replyId) {
+  const timer = hideReplyTimers.get(replyId)
+
+  if (timer !== undefined) {
+    window.clearTimeout(timer)
+    hideReplyTimers.delete(replyId)
+  }
+
+  if (confirmingReplyIds.value.has(replyId)) {
+    const nextIds = new Set(confirmingReplyIds.value)
+
+    nextIds.delete(replyId)
+    confirmingReplyIds.value = nextIds
+  }
+}
+
+function clearAllReplyHideConfirmations() {
+  hideReplyTimers.forEach((timer) => window.clearTimeout(timer))
+  hideReplyTimers.clear()
+  confirmingReplyIds.value = new Set()
+}
+
+function clearReplyHideError(replyId) {
+  if (!hideReplyErrors.value[replyId]) {
+    return
+  }
+
+  const nextErrors = { ...hideReplyErrors.value }
+
+  delete nextErrors[replyId]
+  hideReplyErrors.value = nextErrors
+}
+
+async function hideReply(replyId) {
+  if (isHidingReply(replyId)) {
+    return
+  }
+
+  clearReplyHideError(replyId)
+
+  if (!hasReplyHideConfirmation(replyId)) {
+    const nextIds = new Set(confirmingReplyIds.value)
+
+    nextIds.add(replyId)
+    confirmingReplyIds.value = nextIds
+    hideReplyTimers.set(
+      replyId,
+      window.setTimeout(() => clearReplyHideConfirmation(replyId), 5000),
+    )
+    return
+  }
+
+  clearReplyHideConfirmation(replyId)
+  hidingReplyIds.value = new Set(hidingReplyIds.value).add(replyId)
+
+  try {
+    await updateAdminReplyStatus(replyId, 0)
+
+    replies.value = replies.value
+      .filter((reply) => reply.id !== replyId)
+      .map((reply) => {
+        if (reply.parentReply?.id !== replyId) {
+          return reply
+        }
+
+        return { ...reply, parentReply: null }
+      })
+
+    if (replyTarget.value?.type === 'reply' && replyTarget.value.id === replyId) {
+      closeReplyComposer()
+    }
+  } catch (error) {
+    hideReplyErrors.value = {
+      ...hideReplyErrors.value,
+      [replyId]: error.message || '隐藏回复失败',
+    }
+  } finally {
+    const nextIds = new Set(hidingReplyIds.value)
+
+    nextIds.delete(replyId)
+    hidingReplyIds.value = nextIds
+  }
+}
+
 async function submitReply() {
   if (!canSubmit.value || !post.value || !replyTarget.value) {
     return
@@ -154,9 +299,7 @@ async function submitReply() {
         <div class="post-block__meta-row">
           <div class="post-block__author-group">
             <strong class="post-block__author">{{ post.authorName }}</strong>
-            <span v-if="post.authorRole === 'ADMIN'" class="post-block__admin-badge">
-              管理员
-            </span>
+            <span v-if="post.authorRole === 'ADMIN'" class="post-block__admin-badge"> 管理员 </span>
           </div>
 
           <dl class="post-block__stats" aria-label="帖子数据">
@@ -169,8 +312,8 @@ async function submitReply() {
               <dd>{{ post.viewCount }}</dd>
             </div>
             <div class="post-block__author-group">
-            <span class="post-block__date">{{ formatDisplayDate(post.createdAt) }}</span>
-          </div>
+              <span class="post-block__date">{{ formatDisplayDate(post.createdAt) }}</span>
+            </div>
           </dl>
         </div>
       </div>
@@ -244,6 +387,31 @@ async function submitReply() {
           <p class="post-block__content">{{ reply.content }}</p>
 
           <div class="post-block__actions">
+            <span
+              v-if="hideReplyErrors[reply.id]"
+              class="post-detail__reply-moderation-error"
+              role="alert"
+            >
+              {{ hideReplyErrors[reply.id] }}
+            </span>
+            <button
+              v-if="authStore.isAdmin"
+              class="post-detail__reply-moderation-button"
+              :class="{
+                'post-detail__reply-moderation-button--confirm': hasReplyHideConfirmation(reply.id),
+              }"
+              type="button"
+              :disabled="isHidingReply(reply.id)"
+              @click="hideReply(reply.id)"
+            >
+              {{
+                isHidingReply(reply.id)
+                  ? '隐藏中...'
+                  : hasReplyHideConfirmation(reply.id)
+                    ? '确定'
+                    : '隐藏'
+              }}
+            </button>
             <button
               class="reply-button"
               type="button"
@@ -265,22 +433,38 @@ async function submitReply() {
     </section>
 
     <div class="post-detail__floating-actions" aria-label="页面快捷操作">
+      <div class="post-detail__floating-primary-actions">
+        <button
+          class="post-detail__floating-button"
+          type="button"
+          aria-label="回到顶部"
+          @click="scrollToTop"
+        >
+          <img class="post-detail__floating-icon" :src="arrowUpIcon" alt="" />
+        </button>
+        <button
+          class="post-detail__floating-button"
+          type="button"
+          aria-label="回复帖子"
+          @click="openPostReplyComposer"
+        >
+          <img class="post-detail__floating-icon" :src="messageIcon" alt="" />
+        </button>
+      </div>
+
       <button
-        class="post-detail__floating-button"
+        v-if="authStore.isAdmin"
+        class="post-detail__moderation-button"
+        :class="{ 'post-detail__moderation-button--confirm': hideConfirmationActive }"
         type="button"
-        aria-label="回到顶部"
-        @click="scrollToTop"
+        :disabled="hidingPost"
+        @click="hidePost"
       >
-        <img class="post-detail__floating-icon" :src="arrowUpIcon" alt="" />
+        {{ hidingPost ? '隐藏中...' : hideConfirmationActive ? '确定隐藏' : '隐藏帖子' }}
       </button>
-      <button
-        class="post-detail__floating-button"
-        type="button"
-        aria-label="回复帖子"
-        @click="openPostReplyComposer"
-      >
-        <img class="post-detail__floating-icon" :src="messageIcon" alt="" />
-      </button>
+      <p v-if="hidePostError" class="post-detail__moderation-error" role="alert">
+        {{ hidePostError }}
+      </p>
     </div>
 
     <form
