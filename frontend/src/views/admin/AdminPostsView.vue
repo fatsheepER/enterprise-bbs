@@ -17,6 +17,7 @@ const keywordQuery = ref('')
 const posts = ref([])
 const activePage = ref(1)
 const hiddenPage = ref(1)
+let latestPostsRequestId = 0
 
 const columns = [
   { key: 'id', label: 'ID', className: 'admin-posts-table__id', align: 'center' },
@@ -51,7 +52,7 @@ watch([idQuery, keywordQuery], () => {
 })
 
 const normalizedIdQuery = computed(() => {
-  const value = idQuery.value.trim()
+  const value = String(idQuery.value).trim()
 
   return value ? Number(value) : null
 })
@@ -66,12 +67,17 @@ async function loadPosts() {
     return
   }
 
+  const requestId = ++latestPostsRequestId
   const { id, keyword } = postFilters.value
 
-  posts.value = await getAdminPosts({
+  const nextPosts = await getAdminPosts({
     id,
     keyword,
   })
+
+  if (requestId === latestPostsRequestId) {
+    posts.value = nextPosts
+  }
 }
 
 onMounted(loadPosts)
