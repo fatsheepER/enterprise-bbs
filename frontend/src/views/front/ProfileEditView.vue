@@ -1,5 +1,5 @@
 <script setup>
-import { computed, reactive, ref, watch, watchEffect } from 'vue'
+import { computed, onBeforeUnmount, reactive, ref, watch, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import personPlaceholder from '@/assets/person-placeholder.svg'
@@ -9,8 +9,12 @@ const authStore = useAuthStore()
 const route = useRoute()
 const router = useRouter()
 const avatarInputRef = ref(null)
-const isAvatarUploading = ref(false)
+const pendingAvatarFile = ref(null)
+const avatarPreviewUrl = ref('')
 const avatarError = ref('')
+const isSaving = ref(false)
+const avatarTypes = new Set(['image/jpeg', 'image/png', 'image/webp'])
+const maxAvatarFileSize = 2 * 1024 * 1024
 
 const form = reactive({
   username: '',
@@ -58,7 +62,10 @@ watch(
 )
 
 const currentUser = computed(() => authStore.currentUser)
-const avatarSrc = computed(() => currentUser.value?.avatar || personPlaceholder)
+const avatarSrc = computed(
+  () => avatarPreviewUrl.value || currentUser.value?.avatar || personPlaceholder,
+)
+const hasAvatarChanges = computed(() => Boolean(pendingAvatarFile.value))
 const hasProfileChanges = computed(() => {
   const user = currentUser.value
 
@@ -79,7 +86,10 @@ const hasCompletePassword = computed(() =>
   Boolean(form.oldPassword && form.newPassword && form.confirmPassword),
 )
 const canSave = computed(
-  () => Boolean(form.username.trim()) && (hasProfileChanges.value || hasCompletePassword.value),
+  () =>
+    !isSaving.value &&
+    Boolean(form.username.trim()) &&
+    (hasProfileChanges.value || hasCompletePassword.value || hasAvatarChanges.value),
 )
 
 function clearErrors() {
@@ -126,7 +136,14 @@ function selectAvatar() {
   avatarInputRef.value?.click()
 }
 
-async function handleAvatarChange(event) {
+function clearAvatarPreview() {
+  if (avatarPreviewUrl.value) {
+    URL.revokeObjectURL(avatarPreviewUrl.value)
+    avatarPreviewUrl.value = ''
+  }
+}
+
+function handleAvatarChange(event) {
   const file = event.target.files?.[0]
   event.target.value = ''
 
@@ -134,22 +151,32 @@ async function handleAvatarChange(event) {
     return
   }
 
-  avatarError.value = ''
-  isAvatarUploading.value = true
+  clearAvatarPreview()
+  pendingAvatarFile.value = null
 
-  try {
-    await authStore.uploadAvatar(file)
-  } catch (error) {
-    avatarError.value = error.message || '头像上传失败'
-  } finally {
-    isAvatarUploading.value = false
+  if (!avatarTypes.has(file.type)) {
+    avatarError.value = '仅支持 JPG、PNG 或 WebP 图片'
+    return
   }
+
+  if (file.size > maxAvatarFileSize) {
+    avatarError.value = '头像文件不能超过 2MB'
+    return
+  }
+
+  pendingAvatarFile.value = file
+  avatarPreviewUrl.value = URL.createObjectURL(file)
+  avatarError.value = ''
 }
 
 async function submitProfile() {
   if (!validateForm()) {
     return
   }
+
+  let isAvatarRequest = false
+  isSaving.value = true
+  avatarError.value = ''
 
   try {
     if (hasProfileChanges.value) {
@@ -168,16 +195,32 @@ async function submitProfile() {
       resetPasswordFields()
     }
 
+    if (hasAvatarChanges.value) {
+      isAvatarRequest = true
+      await authStore.uploadAvatar(pendingAvatarFile.value)
+      pendingAvatarFile.value = null
+      clearAvatarPreview()
+    }
+
     router.push('/profile')
   } catch (error) {
+    if (isAvatarRequest) {
+      avatarError.value = error.message || '头像上传失败'
+      return
+    }
+
     if (error.message === '旧密码错误') {
       errors.oldPassword = '旧密码错误'
       return
     }
 
     errors.bio = error.message || '保存失败'
+  } finally {
+    isSaving.value = false
   }
 }
+
+onBeforeUnmount(clearAvatarPreview)
 </script>
 
 <template>
@@ -190,7 +233,7 @@ async function submitProfile() {
         :disabled="!canSave"
         @click="submitProfile"
       >
-        保存
+        {{ isSaving ? '保存中...' : '保存' }}
       </button>
     </header>
 
@@ -216,10 +259,10 @@ async function submitProfile() {
             <button
               class="profile-edit-avatar__button"
               type="button"
-              :disabled="isAvatarUploading"
+              :disabled="isSaving"
               @click="selectAvatar"
             >
-              {{ isAvatarUploading ? '上传中...' : '更换头像' }}
+              {{ hasAvatarChanges ? '重新选择' : '更换头像' }}
             </button>
             <p v-if="avatarError" class="profile-edit-avatar__error">{{ avatarError }}</p>
           </div>
@@ -342,7 +385,7 @@ async function submitProfile() {
         :disabled="!canSave"
         @click="submitProfile"
       >
-        保存
+        {{ isSaving ? '保存中...' : '保存' }}
       </button>
     </div>
   </section>
