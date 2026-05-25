@@ -610,10 +610,22 @@ GET /api/posts
 | --- | --- | --- | --- | --- |
 | `boardId` | number | 否 | 空 | 按版块筛选 |
 | `userId` | number | 否 | 空 | 按发帖用户筛选，用于个人主页或本用户帖子列表 |
-| `keyword` | string | 否 | 空 | 按标题关键词搜索 |
-| `sort` | string | 否 | `latest` | 排序：`latest` 最新回复/更新，`newest` 最新发布，`views` 浏览量 |
+| `keyword` | string | 否 | 空 | 去除首尾空白后，仅按帖子标题做不区分大小写的包含搜索 |
+| `sort` | string | 否 | `latest` | 排序值：`latest`、`views`、`replies`、`title`；兼容保留 `newest` |
 
 `boardId`、`userId`、`keyword` 和 `sort` 可以组合使用；前台仍只返回 `status=1` 的帖子。
+
+排序规则：
+
+| `sort` 值 | 说明 | 排序规则 |
+| --- | --- | --- |
+| `latest` | 最近回复/更新，前台默认选项 | `updatedAt DESC, id DESC`；新增、删除或管理回复会刷新所属帖子的 `updatedAt` |
+| `views` | 浏览数 | `viewCount DESC, updatedAt DESC, id DESC` |
+| `replies` | 可见回复数 | `replyCount DESC, updatedAt DESC, id DESC`，仅统计 `status=1` 的回复 |
+| `title` | 标题首字母 | 按 PostgreSQL 默认文本规则执行 `title ASC, id ASC`，不做中文拼音转换 |
+| `newest` | 兼容已有调用，不在当前前台排序控件展示 | `createdAt DESC, id DESC` |
+
+缺失或不支持的 `sort` 值统一按 `latest` 处理。页头搜索框提交标题关键词后导航至 `/posts?keyword=...`；搜索不覆盖版块名称、帖子正文或回复内容。
 
 响应 `data`：数组，元素为 `PostListItemVO`；前端自行分页展示。
 
