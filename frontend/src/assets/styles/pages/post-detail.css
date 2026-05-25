@@ -91,6 +91,41 @@
   line-height: 1.35;
 }
 
+.post-detail .post-block--reply .post-block__actions {
+  align-items: center;
+  gap: 10px;
+}
+
+.post-detail__reply-moderation-button {
+  min-width: 60px;
+  min-height: 42px;
+  border: 0;
+  border-radius: 8px;
+  background: #d92d20;
+  padding: 0 12px;
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.post-detail__reply-moderation-button:hover,
+.post-detail__reply-moderation-button:focus-visible,
+.post-detail__reply-moderation-button--confirm {
+  background: #b42318;
+}
+
+.post-detail__reply-moderation-button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.post-detail__reply-moderation-error {
+  color: #b42318;
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .post-detail-empty {
   border-radius: 9px;
   background: #fff;
