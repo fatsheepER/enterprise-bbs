@@ -1,5 +1,5 @@
 <script setup>
-import { computed, reactive, watch, watchEffect } from 'vue'
+import { computed, reactive, ref, watch, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import personPlaceholder from '@/assets/person-placeholder.svg'
@@ -8,6 +8,9 @@ import { useAuthStore } from '@/stores/auth'
 const authStore = useAuthStore()
 const route = useRoute()
 const router = useRouter()
+const avatarInputRef = ref(null)
+const isAvatarUploading = ref(false)
+const avatarError = ref('')
 
 const form = reactive({
   username: '',
@@ -38,8 +41,10 @@ watchEffect(() => {
 })
 
 watch(
-  () => authStore.currentUser,
-  (user) => {
+  () => authStore.currentUser?.id,
+  () => {
+    const user = authStore.currentUser
+
     if (!user) {
       return
     }
@@ -117,6 +122,30 @@ function resetPasswordFields() {
   form.confirmPassword = ''
 }
 
+function selectAvatar() {
+  avatarInputRef.value?.click()
+}
+
+async function handleAvatarChange(event) {
+  const file = event.target.files?.[0]
+  event.target.value = ''
+
+  if (!file) {
+    return
+  }
+
+  avatarError.value = ''
+  isAvatarUploading.value = true
+
+  try {
+    await authStore.uploadAvatar(file)
+  } catch (error) {
+    avatarError.value = error.message || '头像上传失败'
+  } finally {
+    isAvatarUploading.value = false
+  }
+}
+
 async function submitProfile() {
   if (!validateForm()) {
     return
@@ -126,7 +155,6 @@ async function submitProfile() {
     if (hasProfileChanges.value) {
       await authStore.updateProfile({
         nickname: form.nickname,
-        avatar: currentUser.value?.avatar || '',
         email: form.email,
         bio: form.bio,
       })
@@ -177,7 +205,24 @@ async function submitProfile() {
           <div class="profile-edit-avatar__preview" aria-hidden="true">
             <img class="profile-edit-avatar__image" :src="avatarSrc" alt="" />
           </div>
-          <button class="profile-edit-avatar__button" type="button" disabled>更换头像</button>
+          <div class="profile-edit-avatar__actions">
+            <input
+              ref="avatarInputRef"
+              class="profile-edit-avatar__input"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              @change="handleAvatarChange"
+            />
+            <button
+              class="profile-edit-avatar__button"
+              type="button"
+              :disabled="isAvatarUploading"
+              @click="selectAvatar"
+            >
+              {{ isAvatarUploading ? '上传中...' : '更换头像' }}
+            </button>
+            <p v-if="avatarError" class="profile-edit-avatar__error">{{ avatarError }}</p>
+          </div>
         </div>
       </section>
 
