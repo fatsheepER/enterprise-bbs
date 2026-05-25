@@ -1,32 +1,60 @@
-.post-sort-select {
+.post-sort-menu {
+  position: relative;
+}
+
+.posts-sort-button {
   display: inline-flex;
   align-items: center;
   gap: 10px;
   min-height: 46px;
   border-radius: 8px;
-  background: #e8e8ed;
+  background: #1D1D1F;
   padding: 0 15px;
-  color: #1d1d1f;
+  color: #ffffff;
   font-size: 14px;
   font-weight: 700;
 }
 
-.post-sort-select__control {
-  border: 0;
-  outline: none;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
+.post-sort-menu__options {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 6px);
+  right: 0;
+  width: 154px;
+  border: 1px solid #d2d2d7;
+  border-radius: 12px;
+  background: #fff;
+  padding: 6px;
+  box-shadow: 0 8px 22px rgb(0 0 0 / 12%);
 }
 
-.post-sort-select__control:focus-visible {
-  outline: 2px solid #06c;
-  outline-offset: 2px;
+.post-sort-menu__option {
+  display: flex;
+  width: 100%;
+  min-height: 38px;
+  align-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  padding: 0 10px;
+  color: #1d1d1f;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+}
+
+.post-sort-menu__option:hover,
+.post-sort-menu__option:focus-visible,
+.post-sort-menu__option--selected {
+  background: #f0f0f5;
+}
+
+.post-sort-menu__option:focus-visible {
+  outline: 1px solid #06c;
 }
 
 @media (max-width: 640px) {
-  .post-sort-select {
+  .posts-sort-button {
     width: fit-content;
     min-height: 42px;
     font-size: 14px;
