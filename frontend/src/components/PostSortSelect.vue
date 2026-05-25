@@ -5,7 +5,6 @@ const options = [
   { value: 'latest', label: '最近回复' },
   { value: 'views', label: '浏览数' },
   { value: 'replies', label: '回复数' },
-  { value: 'title', label: '标题首字母' },
 ]
 
 const props = defineProps({

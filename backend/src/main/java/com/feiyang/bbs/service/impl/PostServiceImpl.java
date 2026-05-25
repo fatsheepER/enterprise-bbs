@@ -103,7 +103,7 @@ public class PostServiceImpl implements PostService {
 
     private String normalizeSort(String sort) {
         if ("newest".equals(sort) || "views".equals(sort)
-                || "replies".equals(sort) || "title".equals(sort)) {
+                || "replies".equals(sort)) {
             return sort;
         }
         return "latest";

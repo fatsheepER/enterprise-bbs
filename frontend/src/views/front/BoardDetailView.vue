@@ -12,7 +12,7 @@ const route = useRoute()
 const router = useRouter()
 const board = ref(null)
 const posts = ref([])
-const validSorts = new Set(['latest', 'views', 'replies', 'title'])
+const validSorts = new Set(['latest', 'views', 'replies'])
 
 const boardId = computed(() => Number(route.params.id))
 const sort = computed(() => (validSorts.has(route.query.sort) ? route.query.sort : 'latest'))

@@ -9,7 +9,7 @@ import PostTable from '@/components/PostTable.vue'
 const route = useRoute()
 const router = useRouter()
 const posts = ref([])
-const validSorts = new Set(['latest', 'views', 'replies', 'title'])
+const validSorts = new Set(['latest', 'views', 'replies'])
 const keyword = computed(() => String(route.query.keyword || '').trim())
 const sort = computed(() => (validSorts.has(route.query.sort) ? route.query.sort : 'latest'))
 const emptyText = computed(() =>

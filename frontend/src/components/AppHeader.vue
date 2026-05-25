@@ -12,7 +12,7 @@ const isMenuOpen = ref(false)
 const searchKeyword = ref('')
 const accountMenuRef = ref(null)
 const avatarSrc = computed(() => authStore.currentUser?.avatar || personPlaceholder)
-const validPostSorts = new Set(['latest', 'views', 'replies', 'title'])
+const validPostSorts = new Set(['latest', 'views', 'replies'])
 
 watch(
   () => (route.name === 'posts' ? String(route.query.keyword || '') : ''),

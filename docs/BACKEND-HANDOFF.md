@@ -66,7 +66,7 @@ npm run build
 | --- | --- | --- |
 | 列表分页仍是本地逻辑 | 演示数据不多，可以接受 | 后端返回完整数组，前端继续本地分页展示 |
 | Header 搜索框 | 已接入全站帖子标题搜索 | 提交后进入 `/posts?keyword=...`，不搜索版块或回复 |
-| 全部帖子/版块详情排序控件 | 已接入后端排序 | 前台展示 `latest/views/replies/title`，API 兼容保留 `newest` |
+| 全部帖子/版块详情排序控件 | 已接入后端排序 | 前台展示 `latest/views/replies`，API 兼容保留 `newest` |
 | 用户删除帖子/回复 UI 缺失 | 基础功能未闭环 | 增加“删除自己的帖子/回复”按钮并调用 DELETE 接口 |
 | 路由单复数已统一 | 需要后续保持一致 | 统一使用 `/posts/:id`、`/boards/:id` |
 | 管理端筛选不完整 | API 支持但 UI 未完全覆盖 | 帖子补 board/status 筛选，回复补 postId/status 或明确不做 |
@@ -286,7 +286,7 @@ mybatis:
   - `boardId`
   - `userId`
   - `keyword`，仅按标题执行不区分大小写的包含搜索
-  - `sort=latest|views|replies|title`，并兼容已有 `newest`
+  - `sort=latest|views|replies`，并兼容已有 `newest`
 - `/posts` 不做服务端分页，直接返回筛选和排序后的完整数组。
 - `GET /posts/{id}` 可顺手 `view_count + 1`，但返回值要和更新后的浏览量一致。
 - 发帖必须校验：
