@@ -20,13 +20,19 @@
   margin-bottom: 4px;
 }
 
+.auth-avatar-control {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
 .auth-avatar-preview {
   display: grid;
   overflow: hidden;
   justify-self: center;
   width: 72px;
   height: 72px;
-  margin-bottom: 8px;
   place-items: center;
   border-radius: 999px;
   background: #e8e8ed;
@@ -38,6 +44,34 @@
   height: 100%;
   object-fit: cover;
   object-position: center;
+}
+
+.auth-avatar-control__input {
+  display: none;
+}
+
+.auth-avatar-control__button {
+  height: 44px;
+  border: 0;
+  border-radius: 8px;
+  background: #e8e8ed;
+  padding: 0 18px;
+  color: #1d1d1f;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.auth-avatar-control__button:disabled {
+  cursor: not-allowed;
+  color: #6e6e73;
+}
+
+.auth-avatar-control__error {
+  margin: 0;
+  color: #b00020;
+  font-size: 13px;
+  line-height: 1.3;
+  text-align: center;
 }
 
 .auth-card__title {
@@ -115,6 +149,11 @@
   box-shadow: inset 0 0 0 2px #06c;
 }
 
+.auth-field__input:disabled {
+  background: #f5f5f7;
+  color: #86868b;
+}
+
 .auth-card__link {
   width: fit-content;
   color: #06c;
@@ -147,6 +186,11 @@
 .auth-card__submit:hover,
 .auth-card__submit:focus-visible {
   background: #0077ed;
+}
+
+.auth-card__submit:disabled {
+  cursor: not-allowed;
+  background: #86b8ea;
 }
 
 @media (max-width: 900px) {
