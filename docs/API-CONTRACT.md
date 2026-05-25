@@ -22,7 +22,7 @@ POST /api/user/login
 
 ### 1.2 数据格式
 
-- 请求体格式：`application/json`
+- 请求体格式：默认 `application/json`；头像上传接口使用 `multipart/form-data`
 - 响应体格式：`application/json`
 - JSON 字段统一使用小驼峰命名，例如 `boardId`、`createdAt`
 - 数据库字段使用下划线命名，例如 `board_id`、`created_at`
@@ -159,6 +159,8 @@ X-User-Role: ADMIN
   "updatedAt": "2026-05-23 16:30:00"
 }
 ```
+
+`avatar` 为空字符串时由前端显示默认头像；上传头像后返回浏览器可访问的相对路径，例如 `/api/uploads/avatars/7af0c3b1.png`。
 
 ### 5.2 BoardVO
 
@@ -425,7 +427,6 @@ X-User-Role: USER
 ```json
 {
   "nickname": "Alice Wang",
-  "avatar": "https://example.com/avatar.png",
   "email": "alice@example.com",
   "bio": "企业 BBS 用户"
 }
@@ -436,15 +437,54 @@ X-User-Role: USER
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
 | `nickname` | string | 否 | 昵称 |
-| `avatar` | string | 否 | 头像 URL |
 | `email` | string | 否 | 邮箱 |
 | `bio` | string | 否 | 个人简介 |
 
-说明：普通用户不能通过该接口修改 `username` 或 `role`。
+说明：普通用户不能通过该接口修改 `username`、`role` 或 `avatar`；头像使用专用上传接口修改。
 
 响应 `data`：`UserVO`
 
-### 6.5 修改密码
+### 6.5 上传头像
+
+```text
+POST /api/user/avatar
+```
+
+需要登录。后端 Controller 对应路径为 `POST /user/avatar`；前端开发环境由 Vite 代理移除 `/api` 前缀。
+
+请求头：
+
+```text
+X-User-Id: 1
+X-User-Role: USER
+Content-Type: multipart/form-data
+```
+
+表单字段：
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `file` | file | 是 | 头像图片，仅支持 JPEG、PNG、WebP，文件大小不超过 2MB |
+
+响应 `data`：更新后的 `UserVO`，例如：
+
+```json
+{
+  "id": 1,
+  "username": "alice",
+  "nickname": "Alice",
+  "avatar": "/api/uploads/avatars/7af0c3b1.png",
+  "email": "alice@example.com",
+  "bio": "企业 BBS 用户",
+  "role": "USER",
+  "createdAt": "2026-05-23 16:30:00",
+  "updatedAt": "2026-05-25 10:00:00"
+}
+```
+
+说明：头像图片保存在后端本地上传目录，数据库仅保存可访问路径；未上传头像时 `avatar` 仍为空字符串。
+
+### 6.6 修改密码
 
 ```text
 PUT /api/user/password
@@ -481,7 +521,7 @@ X-User-Role: USER
 true
 ```
 
-### 6.6 获取我的回复列表
+### 6.7 获取我的回复列表
 
 ```text
 GET /api/user/replies
@@ -1157,6 +1197,7 @@ true
 | 用户 | `POST` | `/api/user/login` | 公开 | 用户/管理员登录 |
 | 用户 | `GET` | `/api/user/profile` | 登录 | 获取个人资料 |
 | 用户 | `PUT` | `/api/user/profile` | 登录 | 修改个人资料 |
+| 用户 | `POST` | `/api/user/avatar` | 登录 | 上传头像 |
 | 用户 | `PUT` | `/api/user/password` | 登录 | 修改密码 |
 | 用户 | `GET` | `/api/user/replies` | 登录 | 获取我的回复列表 |
 | 版块 | `GET` | `/api/boards` | 公开 | 获取启用版块列表 |

@@ -37,3 +37,4 @@ pnpm-debug.log*
 *.db
 *.sqlite
 tmp/
+backend/uploads/
