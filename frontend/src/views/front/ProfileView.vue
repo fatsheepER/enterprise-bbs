@@ -129,7 +129,11 @@ function formatDisplayDate(dateTime) {
           >
             <div class="post-block__header">
               <div class="post-block__avatar" aria-hidden="true">
-                <img class="post-block__avatar-image" :src="avatarSrc" alt="" />
+                <img
+                  class="post-block__avatar-image"
+                  :src="reply.authorAvatar || personPlaceholder"
+                  alt=""
+                />
               </div>
 
               <div class="post-block__meta-row">

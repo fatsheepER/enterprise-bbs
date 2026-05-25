@@ -91,6 +91,7 @@
 
 .avatar-button {
   display: grid;
+  overflow: hidden;
   width: 36px;
   height: 36px;
   place-items: center;
@@ -102,9 +103,10 @@
 
 .avatar-button__image {
   display: block;
-  width: 20px;
-  height: 20px;
-  object-fit: contain;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 
 .account-menu {
@@ -163,6 +165,7 @@
 
 .account-menu__avatar {
   display: grid;
+  overflow: hidden;
   width: 52px;
   height: 52px;
   place-items: center;
@@ -171,9 +174,11 @@
 }
 
 .account-menu__avatar-image {
-  width: 34px;
-  height: 34px;
-  object-fit: contain;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 
 .account-menu__profile-main {

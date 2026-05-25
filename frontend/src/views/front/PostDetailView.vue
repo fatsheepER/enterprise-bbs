@@ -23,6 +23,10 @@ function formatDisplayDate(dateTime) {
   return dateTime?.slice(0, 10) ?? ''
 }
 
+function avatarSrc(avatar) {
+  return avatar || personPlaceholder
+}
+
 function previewText(content = '', maxLength = 72) {
   const normalized = content.replace(/\s+/g, ' ').trim()
 
@@ -144,7 +148,7 @@ async function submitReply() {
     <article class="post-block post-block--main">
       <div class="post-block__header">
         <div class="post-block__avatar" aria-hidden="true">
-          <img class="post-block__avatar-image" :src="personPlaceholder" alt="" />
+          <img class="post-block__avatar-image" :src="avatarSrc(post.authorAvatar)" alt="" />
         </div>
 
         <div class="post-block__meta-row">
@@ -196,7 +200,7 @@ async function submitReply() {
       >
         <div class="post-block__header">
           <div class="post-block__avatar" aria-hidden="true">
-            <img class="post-block__avatar-image" :src="personPlaceholder" alt="" />
+            <img class="post-block__avatar-image" :src="avatarSrc(reply.authorAvatar)" alt="" />
           </div>
 
           <div class="post-block__meta-row">
