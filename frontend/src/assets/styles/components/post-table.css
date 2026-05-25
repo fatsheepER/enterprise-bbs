@@ -36,10 +36,20 @@
   text-align: left;
 }
 
-.posts-table__heading:not(.posts-table__heading--post),
-.posts-table__stat {
+.posts-table__heading:not(.posts-table__heading--post):not(.posts-table__heading--activity),
+.posts-table__stat:not(.posts-table__stat--activity) {
   width: 10%;
   min-width: 94px;
+}
+
+.posts-table__heading--activity,
+.posts-table__stat--activity {
+  width: 152px;
+  white-space: nowrap;
+}
+
+.posts-table__heading--activity {
+  padding-right: 52px;
 }
 
 .posts-table__post-cell {
@@ -86,6 +96,10 @@
   vertical-align: top;
 }
 
+.posts-table__stat--activity {
+  padding-right: 52px;
+}
+
 .posts-table__empty {
   height: 120px;
   padding: 0 34px;
@@ -109,5 +123,10 @@
 
   .posts-table__post-cell {
     padding-left: 34px;
+  }
+
+  .posts-table__heading--activity,
+  .posts-table__stat--activity {
+    padding-right: 34px;
   }
 }
