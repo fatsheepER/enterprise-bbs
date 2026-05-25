@@ -42,13 +42,22 @@ function latestReplyTime(postId) {
 
 function formatRelativeTime(dateTime) {
   const time = new Date(dateTime).getTime()
-  const diffHours = Math.max(1, Math.round((mockNow - time) / 1000 / 60 / 60))
+  const diffMinutes = Math.max(0, Math.floor((mockNow - time) / 1000 / 60))
 
-  if (diffHours < 24) {
-    return `${diffHours}h`
+  if (diffMinutes < 1) {
+    return '刚刚'
   }
 
-  return `${Math.round(diffHours / 24)}d`
+  if (diffMinutes < 60) {
+    return `${diffMinutes} 分钟`
+  }
+
+  const diffHours = Math.floor(diffMinutes / 60)
+  if (diffHours < 24) {
+    return `${diffHours} 小时`
+  }
+
+  return `${Math.floor(diffHours / 24)} 天`
 }
 
 function contentPreview(content) {
