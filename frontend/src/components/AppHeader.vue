@@ -30,7 +30,10 @@ function signOut() {
 }
 
 function goToCreatePost() {
-  router.push('/create-post')
+  router.push({
+    name: 'create-post',
+    query: route.name === 'board-detail' ? { boardId: route.params.id } : {},
+  })
 }
 
 function handleDocumentPointerDown(event) {

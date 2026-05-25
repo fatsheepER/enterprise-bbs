@@ -32,6 +32,11 @@ const selectedBoard = computed(() =>
 
 onMounted(async () => {
   boards.value = await getBoards()
+
+  const initialBoardId = Number(route.query.boardId)
+  if (boards.value.some((board) => board.id === initialBoardId)) {
+    form.boardId = initialBoardId
+  }
 })
 
 watchEffect(() => {
