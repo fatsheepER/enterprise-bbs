@@ -10,6 +10,7 @@ import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 @Slf4j
 @RestControllerAdvice
@@ -29,6 +30,11 @@ public class GlobalExceptionHandler {
     public Result<Void> handleParameterException(Exception ex) {
         String message = resolveParameterMessage(ex);
         return Result.fail(ErrorCode.PARAM_ERROR, message);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public Result<Void> handleMaxUploadSizeException(MaxUploadSizeExceededException ex) {
+        return Result.fail(ErrorCode.PARAM_ERROR, "头像文件不能超过 2MB");
     }
 
     @ExceptionHandler(Exception.class)

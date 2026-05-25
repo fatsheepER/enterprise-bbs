@@ -1,6 +1,11 @@
 package com.feiyang.bbs.service.impl;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.UUID;
 
 import com.feiyang.bbs.common.BusinessException;
 import com.feiyang.bbs.common.CurrentUser;
@@ -15,14 +20,23 @@ import com.feiyang.bbs.service.UserService;
 import com.feiyang.bbs.vo.LoginVO;
 import com.feiyang.bbs.vo.UserReplyListItemVO;
 import com.feiyang.bbs.vo.UserVO;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
-@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
+    private static final long MAX_AVATAR_FILE_SIZE = 2L * 1024 * 1024;
+    private static final String AVATAR_URL_PREFIX = "/api/uploads/avatars/";
+
     private final UserMapper userMapper;
+    private final Path avatarDirectory;
+
+    public UserServiceImpl(UserMapper userMapper, @Value("${bbs.upload-root}") String uploadRoot) {
+        this.userMapper = userMapper;
+        this.avatarDirectory = Paths.get(uploadRoot).toAbsolutePath().normalize().resolve("avatars");
+    }
 
     @Override
     @Transactional
@@ -69,12 +83,30 @@ public class UserServiceImpl implements UserService {
         User user = User.builder()
                 .id(userId)
                 .nickname(trimToNull(dto.getNickname()))
-                .avatar(trimToNull(dto.getAvatar()))
                 .email(trimToNull(dto.getEmail()))
                 .bio(trimToNull(dto.getBio()))
                 .build();
         userMapper.updateProfile(user);
 
+        return requireUserVO(userId);
+    }
+
+    @Override
+    @Transactional
+    public UserVO uploadAvatar(Long userId, MultipartFile file) {
+        ensureUserExists(userId);
+        String extension = validateAvatarFile(file);
+        String fileName = UUID.randomUUID() + extension;
+        Path destination = avatarDirectory.resolve(fileName);
+
+        try {
+            Files.createDirectories(avatarDirectory);
+            file.transferTo(destination);
+        } catch (IOException ex) {
+            throw new BusinessException(ErrorCode.INTERNAL_ERROR, "头像上传失败");
+        }
+
+        userMapper.updateAvatar(userId, AVATAR_URL_PREFIX + fileName);
         return requireUserVO(userId);
     }
 
@@ -125,5 +157,21 @@ public class UserServiceImpl implements UserService {
     private String defaultIfBlank(String value, String defaultValue) {
         String trimmed = trimToNull(value);
         return trimmed == null ? defaultValue : trimmed;
+    }
+
+    private String validateAvatarFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new BusinessException(ErrorCode.PARAM_ERROR, "请选择头像文件");
+        }
+        if (file.getSize() > MAX_AVATAR_FILE_SIZE) {
+            throw new BusinessException(ErrorCode.PARAM_ERROR, "头像文件不能超过 2MB");
+        }
+
+        return switch (file.getContentType() == null ? "" : file.getContentType()) {
+            case "image/jpeg" -> ".jpg";
+            case "image/png" -> ".png";
+            case "image/webp" -> ".webp";
+            default -> throw new BusinessException(ErrorCode.PARAM_ERROR, "仅支持 JPG、PNG 或 WebP 图片");
+        };
     }
 }

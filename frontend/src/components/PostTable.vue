@@ -31,7 +31,9 @@ function postActivity(post) {
           <th class="posts-table__heading posts-table__heading--post" scope="col">帖子</th>
           <th class="posts-table__heading" scope="col">回复数</th>
           <th class="posts-table__heading" scope="col">浏览数</th>
-          <th class="posts-table__heading" scope="col">最近回复</th>
+          <th class="posts-table__heading posts-table__heading--activity" scope="col">
+            最近回复
+          </th>
         </tr>
       </thead>
 
@@ -51,17 +53,20 @@ function postActivity(post) {
                 </RouterLink>
               </h2>
               <p class="posts-table__excerpt">{{ postPreview(post) }}</p>
-              <span
+              <RouterLink
                 class="board-badge posts-table__badge"
+                :to="{ name: 'board-detail', params: { id: post.boardId } }"
                 :style="{ '--board-color': post.boardColorHex }"
               >
                 {{ post.boardName }}
-              </span>
+              </RouterLink>
             </td>
 
             <td class="posts-table__stat" aria-label="回复数">{{ post.replyCount }}</td>
             <td class="posts-table__stat" aria-label="浏览数">{{ post.viewCount }}</td>
-            <td class="posts-table__stat" aria-label="最近回复">{{ postActivity(post) }}</td>
+            <td class="posts-table__stat posts-table__stat--activity" aria-label="最近回复">
+              {{ postActivity(post) }}
+            </td>
           </tr>
         </template>
       </tbody>

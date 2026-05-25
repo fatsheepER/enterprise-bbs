@@ -1,5 +1,5 @@
 <script setup>
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import personPlaceholder from '../assets/person-placeholder.svg'
@@ -10,6 +10,7 @@ const route = useRoute()
 const router = useRouter()
 const isMenuOpen = ref(false)
 const accountMenuRef = ref(null)
+const avatarSrc = computed(() => authStore.currentUser?.avatar || personPlaceholder)
 
 function toggleMenu() {
   isMenuOpen.value = !isMenuOpen.value
@@ -29,7 +30,10 @@ function signOut() {
 }
 
 function goToCreatePost() {
-  router.push('/create-post')
+  router.push({
+    name: 'create-post',
+    query: route.name === 'board-detail' ? { boardId: route.params.id } : {},
+  })
 }
 
 function handleDocumentPointerDown(event) {
@@ -81,7 +85,7 @@ onBeforeUnmount(() => {
             :aria-expanded="isMenuOpen"
             @click="toggleMenu"
           >
-            <img class="avatar-button__image" :src="personPlaceholder" alt="" />
+            <img class="avatar-button__image" :src="avatarSrc" alt="" />
           </button>
 
           <div
@@ -105,7 +109,7 @@ onBeforeUnmount(() => {
           <div v-else-if="isMenuOpen" class="account-menu account-menu--user" role="menu">
             <div class="account-menu__profile">
               <div class="account-menu__avatar" aria-hidden="true">
-                <img class="account-menu__avatar-image" :src="personPlaceholder" alt="" />
+                <img class="account-menu__avatar-image" :src="avatarSrc" alt="" />
               </div>
               <div class="account-menu__profile-main">
                 <strong class="account-menu__name">{{ authStore.displayName }}</strong>

@@ -16,6 +16,12 @@ export function updateUserProfile(data) {
   return request.put('/user/profile', data)
 }
 
+export function uploadUserAvatar(file) {
+  const formData = new FormData()
+  formData.append('file', file)
+  return request.post('/user/avatar', formData)
+}
+
 export function updateUserPassword(data) {
   return request.put('/user/password', data)
 }

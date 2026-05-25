@@ -76,6 +76,7 @@
 
 .profile-edit-avatar__preview {
   display: grid;
+  overflow: hidden;
   width: 88px;
   height: 88px;
   place-items: center;
@@ -84,9 +85,11 @@
 }
 
 .profile-edit-avatar__image {
-  width: 58px;
-  height: 58px;
-  object-fit: contain;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 
 .profile-edit-avatar__button {
@@ -97,11 +100,28 @@
   padding: 0 18px;
   color: #1d1d1f;
   font-weight: 600;
+  cursor: pointer;
 }
 
 .profile-edit-avatar__button:disabled {
   cursor: not-allowed;
   color: #6e6e73;
+}
+
+.profile-edit-avatar__actions {
+  display: grid;
+  gap: 8px;
+}
+
+.profile-edit-avatar__input {
+  display: none;
+}
+
+.profile-edit-avatar__error {
+  margin: 0;
+  color: #b00020;
+  font-size: 13px;
+  line-height: 1.3;
 }
 
 .profile-edit-fields {

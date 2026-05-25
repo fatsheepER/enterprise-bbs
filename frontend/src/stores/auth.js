@@ -6,6 +6,7 @@ import {
   registerUser,
   updateUserPassword,
   updateUserProfile,
+  uploadUserAvatar,
 } from '@/api/user'
 
 const CURRENT_USER_KEY = 'currentUser'
@@ -58,17 +59,28 @@ export const useAuthStore = defineStore('auth', () => {
     return safeUser
   }
 
-  async function updateProfile({ nickname, avatar, email, bio }) {
+  async function updateProfile({ nickname, email, bio }) {
     if (!currentUser.value?.id) {
       throw new Error('请先登录')
     }
 
     const safeUser = await updateUserProfile({
       nickname: nickname.trim(),
-      avatar: avatar?.trim() ?? '',
       email: email.trim(),
       bio: bio.trim(),
     })
+    persistCurrentUser(safeUser)
+    currentUser.value = safeUser
+
+    return safeUser
+  }
+
+  async function uploadAvatar(file) {
+    if (!currentUser.value?.id) {
+      throw new Error('请先登录')
+    }
+
+    const safeUser = await uploadUserAvatar(file)
     persistCurrentUser(safeUser)
     currentUser.value = safeUser
 
@@ -100,6 +112,7 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     register,
     updateProfile,
+    uploadAvatar,
     changePassword,
     logout,
     syncFromStorage,

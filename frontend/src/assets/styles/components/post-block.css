@@ -16,6 +16,7 @@
 
 .post-block__avatar {
   display: grid;
+  overflow: hidden;
   flex: 0 0 auto;
   width: 58px;
   height: 58px;
@@ -25,9 +26,11 @@
 }
 
 .post-block__avatar-image {
-  width: 28px;
-  height: 28px;
-  object-fit: contain;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 
 .post-block__meta-row {
@@ -61,6 +64,20 @@
   line-height: 1.35;
 }
 
+.post-block__timestamp {
+  display: inline-flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: end;
+  justify-content: center;
+}
+
+.post-block__time {
+  color: #6e6e73;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
 .post-block__op-badge {
   color: #006bd6;
   font-size: 15px;
@@ -82,7 +99,7 @@
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
-  gap: 10px;
+  gap: 20px;
 }
 
 .post-block__reply-id {
@@ -95,6 +112,7 @@
 .post-block__stats {
   display: flex;
   flex: 0 0 auto;
+  align-items: center;
   gap: 28px;
   margin: 0;
 }
@@ -224,11 +242,6 @@
   .post-block__avatar {
     width: 46px;
     height: 46px;
-  }
-
-  .post-block__avatar-image {
-    width: 30px;
-    height: 30px;
   }
 
   .post-block__meta-row {
