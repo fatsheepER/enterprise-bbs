@@ -271,6 +271,7 @@ async function deleteOwnReply(replyId) {
                   :class="{
                     'profile-reply__delete-button--confirm':
                       hasReplyDeleteConfirmation(reply.id),
+                    'profile-reply__delete-button--deleting': isDeletingReply(reply.id),
                   }"
                   type="button"
                   :disabled="isDeletingReply(reply.id)"

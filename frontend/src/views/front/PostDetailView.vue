@@ -573,10 +573,11 @@ async function submitReply() {
             </button>
             <button
               v-if="canDeleteReply(reply)"
-              class="post-detail__reply-moderation-button"
+              class="post-detail__reply-moderation-button post-detail__reply-moderation-button--delete"
               :class="{
                 'post-detail__reply-moderation-button--confirm':
                   hasReplyDeleteConfirmation(reply.id),
+                'post-detail__reply-moderation-button--deleting': isDeletingReply(reply.id),
               }"
               type="button"
               :disabled="isDeletingReply(reply.id)"
@@ -645,8 +646,11 @@ async function submitReply() {
       </p>
       <button
         v-if="canDeletePost"
-        class="post-detail__moderation-button"
-        :class="{ 'post-detail__moderation-button--confirm': deleteConfirmationActive }"
+        class="post-detail__moderation-button post-detail__moderation-button--delete"
+        :class="{
+          'post-detail__moderation-button--confirm': deleteConfirmationActive,
+          'post-detail__moderation-button--deleting': deletingPost,
+        }"
         type="button"
         :disabled="deletingPost"
         @click="deleteOwnPost"
