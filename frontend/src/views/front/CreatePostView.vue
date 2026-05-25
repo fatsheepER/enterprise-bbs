@@ -151,19 +151,6 @@ async function submitPost() {
         <span v-if="errors.title" class="create-post-field__error">{{ errors.title }}</span>
       </label>
 
-      <label class="create-post-field">
-        <span class="create-post-field__label">内容</span>
-        <textarea
-          v-model="form.content"
-          class="create-post-field__input create-post-field__textarea"
-          placeholder="输入帖子内容"
-          maxlength="5000"
-          rows="12"
-        ></textarea>
-        <span v-if="errors.content" class="create-post-field__error">{{ errors.content }}</span>
-        <span class="create-post-field__counter">{{ form.content.trim().length }} / 5000</span>
-      </label>
-
       <div class="create-post-field create-post-field--select">
         <span id="create-post-board-label" class="create-post-field__label">版块</span>
         <div ref="boardSelectRef" class="create-post-board-select">
@@ -214,6 +201,19 @@ async function submitPost() {
         </div>
         <span v-if="errors.boardId" class="create-post-field__error">{{ errors.boardId }}</span>
       </div>
+
+      <label class="create-post-field">
+        <span class="create-post-field__label">内容</span>
+        <textarea
+          v-model="form.content"
+          class="create-post-field__input create-post-field__textarea"
+          placeholder="输入帖子内容"
+          maxlength="5000"
+          rows="12"
+        ></textarea>
+        <span v-if="errors.content" class="create-post-field__error">{{ errors.content }}</span>
+        <span class="create-post-field__counter">{{ form.content.trim().length }} / 5000</span>
+      </label>
 
       <p v-if="submitError" class="create-post-form__error">{{ submitError }}</p>
 
