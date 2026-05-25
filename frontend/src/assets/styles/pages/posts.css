@@ -10,30 +10,10 @@
   margin-bottom: 0;
 }
 
-.posts-sort-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 46px;
-  border: 0;
-  border-radius: 8px;
-  padding: 0 15px;
-  background: #e8e8ed;
-  color: #1d1d1f;
-  font-size: 14px;
-  font-weight: 700;
-}
-
 @media (max-width: 640px) {
   .posts-overview__toolbar {
     align-items: stretch;
     flex-direction: column;
     gap: 14px;
-  }
-
-  .posts-sort-button {
-    width: fit-content;
-    min-height: 42px;
-    font-size: 14px;
   }
 }

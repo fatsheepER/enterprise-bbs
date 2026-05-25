@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import personPlaceholder from '../assets/person-placeholder.svg'
@@ -9,8 +9,18 @@ const authStore = useAuthStore()
 const route = useRoute()
 const router = useRouter()
 const isMenuOpen = ref(false)
+const searchKeyword = ref('')
 const accountMenuRef = ref(null)
 const avatarSrc = computed(() => authStore.currentUser?.avatar || personPlaceholder)
+const validPostSorts = new Set(['latest', 'views', 'replies', 'title'])
+
+watch(
+  () => (route.name === 'posts' ? String(route.query.keyword || '') : ''),
+  (keyword) => {
+    searchKeyword.value = keyword
+  },
+  { immediate: true },
+)
 
 function toggleMenu() {
   isMenuOpen.value = !isMenuOpen.value
@@ -34,6 +44,25 @@ function goToCreatePost() {
     name: 'create-post',
     query: route.name === 'board-detail' ? { boardId: route.params.id } : {},
   })
+}
+
+function searchPosts() {
+  const keyword = searchKeyword.value.trim()
+  const query = {}
+
+  if (keyword) {
+    query.keyword = keyword
+  }
+
+  if (
+    route.name === 'posts' &&
+    validPostSorts.has(route.query.sort) &&
+    route.query.sort !== 'latest'
+  ) {
+    query.sort = route.query.sort
+  }
+
+  router.push({ name: 'posts', query })
 }
 
 function handleDocumentPointerDown(event) {
@@ -65,14 +94,15 @@ onBeforeUnmount(() => {
     <div class="app-header__inner content-width">
       <RouterLink class="app-header__brand" to="/">Enterprise BBS</RouterLink>
 
-      <div class="app-header__search search-box">
+      <form class="app-header__search search-box" role="search" @submit.prevent="searchPosts">
         <input
+          v-model="searchKeyword"
           class="search-box__input"
           type="search"
-          placeholder="搜索帖子、版块或关键词"
-          aria-label="搜索帖子、版块或关键词"
+          placeholder="按帖子标题搜索"
+          aria-label="按帖子标题搜索"
         />
-      </div>
+      </form>
 
       <div class="app-header__actions">
         <button class="post-button" type="button" @click="goToCreatePost">发帖</button>

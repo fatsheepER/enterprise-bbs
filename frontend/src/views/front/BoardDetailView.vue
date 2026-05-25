@@ -1,23 +1,27 @@
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 import { getBoard } from '@/api/boards'
 import { getPosts } from '@/api/posts'
 import boardIcon from '@/assets/board-placeholder.svg'
+import PostSortSelect from '@/components/PostSortSelect.vue'
 import PostTable from '@/components/PostTable.vue'
 
 const route = useRoute()
+const router = useRouter()
 const board = ref(null)
 const posts = ref([])
+const validSorts = new Set(['latest', 'views', 'replies', 'title'])
 
 const boardId = computed(() => Number(route.params.id))
+const sort = computed(() => (validSorts.has(route.query.sort) ? route.query.sort : 'latest'))
 
 async function loadBoard() {
   try {
     const [boardDetail, postList] = await Promise.all([
       getBoard(boardId.value),
-      getPosts({ boardId: boardId.value }),
+      getPosts({ boardId: boardId.value, sort: sort.value }),
     ])
 
     board.value = boardDetail
@@ -28,8 +32,23 @@ async function loadBoard() {
   }
 }
 
-onMounted(loadBoard)
-watch(boardId, loadBoard)
+function updateSort(nextSort) {
+  const query = { ...route.query }
+
+  if (nextSort === 'latest') {
+    delete query.sort
+  } else {
+    query.sort = nextSort
+  }
+
+  router.push({
+    name: 'board-detail',
+    params: { id: route.params.id },
+    query,
+  })
+}
+
+watch([boardId, sort], loadBoard, { immediate: true })
 </script>
 
 <template>
@@ -56,10 +75,7 @@ watch(boardId, loadBoard)
           </RouterLink>
         </nav>
 
-        <button class="posts-sort-button" type="button" aria-label="排序">
-          最近回复
-          <span aria-hidden="true">↓</span>
-        </button>
+        <PostSortSelect :model-value="sort" @update:model-value="updateSort" />
       </div>
     </section>
 
@@ -69,6 +85,8 @@ watch(boardId, loadBoard)
   <section v-else class="board-detail-empty">
     <h1 class="board-detail-empty__title">版块不存在</h1>
     <p class="board-detail-empty__message">这个版块可能已停用或被删除。</p>
-    <RouterLink class="overview-tabs__link board-detail-empty__link" to="/">返回版块总览</RouterLink>
+    <RouterLink class="overview-tabs__link board-detail-empty__link" to="/"
+      >返回版块总览</RouterLink
+    >
   </section>
 </template>

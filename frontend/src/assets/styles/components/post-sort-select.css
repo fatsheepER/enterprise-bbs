@@ -1,0 +1,34 @@
+.post-sort-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  border-radius: 8px;
+  background: #e8e8ed;
+  padding: 0 15px;
+  color: #1d1d1f;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.post-sort-select__control {
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.post-sort-select__control:focus-visible {
+  outline: 2px solid #06c;
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .post-sort-select {
+    width: fit-content;
+    min-height: 42px;
+    font-size: 14px;
+  }
+}
