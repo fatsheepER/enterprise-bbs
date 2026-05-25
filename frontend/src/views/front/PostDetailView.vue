@@ -140,9 +140,13 @@ async function submitReply() {
   <section v-if="post" class="post-detail">
     <header class="post-detail__header">
       <h1 class="post-detail__title">{{ post.title }}</h1>
-      <span class="board-badge" :style="{ '--board-color': post.boardColorHex }">
+      <RouterLink
+        class="board-badge"
+        :to="{ name: 'board-detail', params: { id: post.boardId } }"
+        :style="{ '--board-color': post.boardColorHex }"
+      >
         {{ post.boardName }}
-      </span>
+      </RouterLink>
     </header>
 
     <article class="post-block post-block--main">
@@ -154,9 +158,7 @@ async function submitReply() {
         <div class="post-block__meta-row">
           <div class="post-block__author-group">
             <strong class="post-block__author">{{ post.authorName }}</strong>
-            <span v-if="post.authorRole === 'ADMIN'" class="post-block__admin-badge">
-              管理员
-            </span>
+            <span v-if="post.authorRole === 'ADMIN'" class="post-block__admin-badge"> 管理员 </span>
           </div>
 
           <dl class="post-block__stats" aria-label="帖子数据">
@@ -169,8 +171,8 @@ async function submitReply() {
               <dd>{{ post.viewCount }}</dd>
             </div>
             <div class="post-block__author-group">
-            <span class="post-block__date">{{ formatDisplayDate(post.createdAt) }}</span>
-          </div>
+              <span class="post-block__date">{{ formatDisplayDate(post.createdAt) }}</span>
+            </div>
           </dl>
         </div>
       </div>

@@ -139,9 +139,13 @@ function formatDisplayDate(dateTime) {
               <div class="post-block__meta-row">
                 <div class="post-block__author-group">
                   <strong class="post-block__author">{{ reply.authorName }}</strong>
-                  <span class="board-badge" :style="{ '--board-color': reply.boardColorHex }">
+                  <RouterLink
+                    class="board-badge"
+                    :to="{ name: 'board-detail', params: { id: reply.boardId } }"
+                    :style="{ '--board-color': reply.boardColorHex }"
+                  >
                     {{ reply.boardName }}
-                  </span>
+                  </RouterLink>
                 </div>
 
                 <div class="post-block__time-group">
@@ -160,7 +164,9 @@ function formatDisplayDate(dateTime) {
                 </h2>
                 <p v-if="reply.reference.type === 'reply'" class="parent-reply__meta">
                   引用回复
-                  <RouterLink :to="reply.reference.href">{{ reply.reference.authorName }}</RouterLink>
+                  <RouterLink :to="reply.reference.href">{{
+                    reply.reference.authorName
+                  }}</RouterLink>
                 </p>
                 <p class="parent-reply__content">{{ reply.reference.contentPreview }}</p>
               </aside>
