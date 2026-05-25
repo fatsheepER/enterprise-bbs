@@ -4,27 +4,24 @@
 
 ## 1. 当前结论
 
-前端已经完成了一个可演示的 mock 版本，覆盖了基础方案中的主要页面：
+前端已经完成了一个接入真实 API 的可演示版本，覆盖了基础方案中的主要页面：
 
 - 前台：版块总览、全部帖子、版块详情、帖子详情、登录、注册、发帖、个人主页、资料编辑。
 - 管理端：概览、版块管理、帖子管理、回复管理。
-- 交互：登录态、角色入口、发帖、回帖、编辑资料、修改密码、管理端新建/编辑版块、隐藏/恢复帖子、隐藏/恢复回复。
-- 数据：`src/mock/users.js`、`boards.js`、`posts.js`、`replies.js` 和 `forumViewModels.js` 已经按四张核心表模拟了主要 VO。
+- 交互：登录态、角色入口、发帖、回帖、编辑资料、修改密码、管理端新建/编辑版块、隐藏/恢复帖子、隐藏/恢复回复、标题搜索和帖子列表排序。
+- 数据：`src/api/` 已按模块请求后端接口，`request.js` 负责统一响应解包和轻量登录态请求头。
 
-但前端目前还不是可联调状态：
+当前仍需后续补齐的交互：
 
-- `frontend/src/api/request.js` 只有注释，没有真正的 Axios 实例、`Result<T>` 解包、错误处理和登录请求头注入。
-- 页面直接 import `@/mock/forumViewModels` 或 `../mock/users`，mock 查询和写入逻辑分散在页面与 Pinia store 中。
-- 发帖会写入 mock 数组，但刷新后丢失；回帖只追加到当前详情页 `replies` 局部状态，离开页面后丢失；管理端状态修改也只影响内存数据。
-- 搜索框、排序按钮、部分筛选条件还只是 UI 或本地简化筛选，没有完全对应 API 契约。
+- 页头帖子标题搜索和前台帖子排序已接入 `/api/posts` 查询参数；其余未实现筛选仍按具体页面继续补充。
 - 普通用户删除自己帖子、删除自己回复的 UI 还未实现。
 - 前端路由已统一为 `/boards/:id`、`/posts/:id`，后续文档、跳转和后端返回的 `href` 字段都按复数路径处理。
 
 整体判断：
 
-- 作为课程设计静态/mock 前端：完成度约 80%。
-- 作为后端联调前端：完成度约 55%-60%，核心页面已在，但需要补 API service 层和异步状态。
-- 后端当前只有 Spring Boot 启动类和配置，业务实现基本从零开始；不过 SQL、API 契约和前端 VO 形态已经比较明确。
+- 前端主要页面已经通过 API 层访问真实后端，保留的 mock 文件不作为当前页面数据源。
+- 后端已实现用户、版块、帖子、回复和管理端的主要 Controller/Service/Mapper 链路。
+- 本文档中的模块拆分仍可用于核对接口约定与遗留 UI 缺口。
 
 已验证：
 
@@ -42,37 +39,34 @@ npm run build
 | 功能 | 当前页面/文件 | 当前状态 |
 | --- | --- | --- |
 | 版块总览 | `frontend/src/views/front/BoardsOverviewView.vue` | 已展示启用版块和每个版块最新帖子 |
-| 全部帖子 | `frontend/src/views/front/PostsView.vue` | 已展示全部正常帖子；排序按钮未真正交互 |
-| 版块详情 | `frontend/src/views/front/BoardDetailView.vue` | 已展示指定版块信息和该版块帖子 |
+| 全部帖子 | `frontend/src/views/front/PostsView.vue` | 已展示全部正常帖子，并接入页头标题搜索结果与排序查询参数 |
+| 版块详情 | `frontend/src/views/front/BoardDetailView.vue` | 已展示指定版块信息和该版块帖子，并接入排序查询参数 |
 | 帖子详情 | `frontend/src/views/front/PostDetailView.vue` | 已展示正文、回复流、引用回复、浮动回复入口 |
-| 登录 | `frontend/src/views/front/LoginView.vue` | mock 用户校验，写入 `localStorage.currentUser` |
-| 注册 | `frontend/src/views/front/RegisterView.vue` | mock 注册，写入 `localStorage.mockUsers` 和当前用户 |
-| 发帖 | `frontend/src/views/front/CreatePostView.vue` | 登录后可发帖，写入内存 mock posts |
+| 登录 | `frontend/src/views/front/LoginView.vue` | 调用登录接口并写入 `localStorage.currentUser` |
+| 注册 | `frontend/src/views/front/RegisterView.vue` | 调用注册接口并保存当前用户 |
+| 发帖 | `frontend/src/views/front/CreatePostView.vue` | 登录后调用真实发帖接口 |
 | 个人主页 | `frontend/src/views/front/ProfileView.vue` | 展示当前用户资料、发帖、回复 |
-| 编辑资料 | `frontend/src/views/front/ProfileEditView.vue` | 可修改 mock 资料和密码 |
-| 管理端概览 | `frontend/src/views/admin/AdminDashboardView.vue` | 展示 mock 统计和最新内容 |
-| 版块管理 | `frontend/src/views/admin/AdminBoardsView.vue` | 可新建、编辑、启停 mock 版块 |
-| 帖子管理 | `frontend/src/views/admin/AdminPostsView.vue` | 可隐藏/恢复 mock 帖子，带本地分页 |
-| 回复管理 | `frontend/src/views/admin/AdminRepliesView.vue` | 可隐藏/恢复 mock 回复，带本地分页 |
+| 编辑资料 | `frontend/src/views/front/ProfileEditView.vue` | 可通过用户接口修改资料和密码 |
+| 管理端概览 | `frontend/src/views/admin/AdminDashboardView.vue` | 展示管理接口返回的统计和最新内容 |
+| 版块管理 | `frontend/src/views/admin/AdminBoardsView.vue` | 可通过管理接口新建、编辑、启停版块 |
+| 帖子管理 | `frontend/src/views/admin/AdminPostsView.vue` | 可通过管理接口隐藏/恢复帖子，带本地分页 |
+| 回复管理 | `frontend/src/views/admin/AdminRepliesView.vue` | 可通过管理接口隐藏/恢复回复，带本地分页 |
 
-### 2.2 已覆盖但需要后端接管的行为
+### 2.2 已由 API 接管的行为
 
-- 登录/注册/登出：当前在 `frontend/src/stores/auth.js` 内直接读写 mock 用户和 `localStorage`。
-- 个人资料和密码：当前由 `authStore.updateProfile()`、`authStore.changePassword()` 本地处理。
-- 公开读取：`visibleBoards()`、`visiblePosts()`、`postDetail()`、`postReplies()` 等来自 `forumViewModels.js`。
-- 管理端读取和写入：`adminBoards()`、`createAdminBoard()`、`updateAdminBoard()`、`adminPosts()`、`updateAdminPostStatus()`、`adminReplies()`、`updateAdminReplyStatus()`。
+- 登录/注册/资料/密码：`frontend/src/stores/auth.js` 通过 `src/api/user.js` 调用后端，并仅在浏览器保存当前登录用户。
+- 公开读取和写入：版块、帖子、回复页面通过 `src/api/boards.js`、`posts.js`、`replies.js` 调用后端。
+- 管理端读取和写入：管理页面通过 `src/api/admin.js` 调用后端。
 
-这些函数的返回字段和 `docs/API-CONTRACT.md` 中的 VO 接近，可以作为后端实现和前端 service 层的字段参考。
+上述调用继续以 `docs/API-CONTRACT.md` 中的 VO 和查询参数为契约。
 
 ### 2.3 前端待补缺口
 
 | 缺口 | 影响 | 建议处理 |
 | --- | --- | --- |
-| 没有真正 API client | 无法联调 | 先实现 `src/api/request.js` 和按模块 API service |
-| 页面直接依赖 mock | 替换成本高 | 每个页面改为调用 service，mock 只保留为备用数据源 |
 | 列表分页仍是本地逻辑 | 演示数据不多，可以接受 | 后端返回完整数组，前端继续本地分页展示 |
-| Header 搜索框未绑定行为 | 演示中搜索不可用 | 后端完成 `/api/posts?keyword=` 后再接入 |
-| 全部帖子/版块详情排序按钮未绑定 | UI 和实际行为不一致 | 接入 `/api/posts?sort=latest/newest/views` |
+| Header 搜索框 | 已接入全站帖子标题搜索 | 提交后进入 `/posts?keyword=...`，不搜索版块或回复 |
+| 全部帖子/版块详情排序控件 | 已接入后端排序 | 前台展示 `latest/views/replies`，API 兼容保留 `newest` |
 | 用户删除帖子/回复 UI 缺失 | 基础功能未闭环 | 增加“删除自己的帖子/回复”按钮并调用 DELETE 接口 |
 | 路由单复数已统一 | 需要后续保持一致 | 统一使用 `/posts/:id`、`/boards/:id` |
 | 管理端筛选不完整 | API 支持但 UI 未完全覆盖 | 帖子补 board/status 筛选，回复补 postId/status 或明确不做 |
@@ -291,8 +285,8 @@ mybatis:
 - `/posts` 支持：
   - `boardId`
   - `userId`
-  - `keyword`
-  - `sort=latest|newest|views`
+  - `keyword`，仅按标题执行不区分大小写的包含搜索
+  - `sort=latest|views|replies`，并兼容已有 `newest`
 - `/posts` 不做服务端分页，直接返回筛选和排序后的完整数组。
 - `GET /posts/{id}` 可顺手 `view_count + 1`，但返回值要和更新后的浏览量一致。
 - 发帖必须校验：
@@ -305,8 +299,8 @@ mybatis:
 
 前端依赖：
 
-- 首页和版块页改为调用 `/api/boards`、`/api/posts?boardId=...`。
-- 全部帖子页改为真实接口取全量数据，排序由后端按 `sort` 处理，分页仍由前端本地完成。
+- 首页和版块页调用 `/api/boards`、`/api/posts?boardId=...`；版块详情页通过 `sort` 查询参数请求排序结果。
+- 全部帖子页以路由中的 `keyword` 和 `sort` 请求真实接口；页头标题搜索跳转到该结果页，排序由后端处理。
 - 发帖页改为 `POST /api/posts`，成功后跳转详情页。
 - 个人主页“我的发帖”改为 `/api/posts?userId=currentUser.id`。
 - 需要补“删除自己的帖子”按钮，可放在个人主页发帖列表或帖子详情页作者本人可见区域。

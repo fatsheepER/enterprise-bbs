@@ -20,6 +20,7 @@ const boards = ref([])
 const isDialogOpen = ref(false)
 const editingBoardId = ref(null)
 const formError = ref('')
+let latestBoardsRequestId = 0
 
 const form = reactive({
   name: '',
@@ -56,7 +57,7 @@ watchEffect(() => {
 })
 
 const normalizedIdQuery = computed(() => {
-  const value = idQuery.value.trim()
+  const value = String(idQuery.value).trim()
 
   return value ? Number(value) : null
 })
@@ -71,12 +72,17 @@ async function loadBoards() {
     return
   }
 
+  const requestId = ++latestBoardsRequestId
   const { id, keyword } = boardFilters.value
 
-  boards.value = await getAdminBoards({
+  const nextBoards = await getAdminBoards({
     id,
     keyword,
   })
+
+  if (requestId === latestBoardsRequestId) {
+    boards.value = nextBoards
+  }
 }
 
 onMounted(loadBoards)

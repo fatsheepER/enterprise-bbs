@@ -272,7 +272,7 @@ X-User-Role: ADMIN
 
 ### 5.6 UserReplyListItemVO
 
-用于个人主页展示当前登录用户发表过的回复。`reference` 字段永远存在：如果 `parentReplyId` 不为空，引用父回复摘要；如果 `parentReplyId` 为空，引用原帖摘要。
+用于个人主页展示当前登录用户发表过的可见回复。所属帖子或版块不可见时，该回复不返回。`reference` 字段永远存在：如果 `parentReplyId` 不为空，引用父回复摘要；如果 `parentReplyId` 为空，引用原帖摘要。
 
 ```json
 {
@@ -527,7 +527,7 @@ true
 GET /api/user/replies
 ```
 
-需要登录。用于个人主页展示当前登录用户发表过的回复。
+需要登录。用于个人主页展示当前登录用户发表过的回复；仅返回回复、所属帖子和所属版块均为 `status=1` 的数据。
 
 请求头：
 
@@ -602,7 +602,7 @@ GET /api/boards/{id}
 GET /api/posts
 ```
 
-公开接口。前台默认只返回 `status=1` 的帖子。
+公开接口。前台默认只返回帖子自身和所属版块均为 `status=1` 的帖子。
 
 查询参数：
 
@@ -610,10 +610,21 @@ GET /api/posts
 | --- | --- | --- | --- | --- |
 | `boardId` | number | 否 | 空 | 按版块筛选 |
 | `userId` | number | 否 | 空 | 按发帖用户筛选，用于个人主页或本用户帖子列表 |
-| `keyword` | string | 否 | 空 | 按标题关键词搜索 |
-| `sort` | string | 否 | `latest` | 排序：`latest` 最新回复/更新，`newest` 最新发布，`views` 浏览量 |
+| `keyword` | string | 否 | 空 | 去除首尾空白后，仅按帖子标题做不区分大小写的包含搜索 |
+| `sort` | string | 否 | `latest` | 排序值：`latest`、`views`、`replies`；兼容保留 `newest` |
 
-`boardId`、`userId`、`keyword` 和 `sort` 可以组合使用；前台仍只返回 `status=1` 的帖子。
+`boardId`、`userId`、`keyword` 和 `sort` 可以组合使用；前台仍只返回帖子自身和所属版块均为 `status=1` 的帖子，因此 `/profile` 不展示已停用版块下的用户发帖。
+
+排序规则：
+
+| `sort` 值 | 说明 | 排序规则 |
+| --- | --- | --- |
+| `latest` | 最近回复/更新，前台默认选项 | `updatedAt DESC, id DESC`；新增、删除或管理回复会刷新所属帖子的 `updatedAt` |
+| `views` | 浏览数 | `viewCount DESC, updatedAt DESC, id DESC` |
+| `replies` | 可见回复数 | `replyCount DESC, updatedAt DESC, id DESC`，仅统计 `status=1` 的回复 |
+| `newest` | 兼容已有调用，不在当前前台排序控件展示 | `createdAt DESC, id DESC` |
+
+缺失或不支持的 `sort` 值统一按 `latest` 处理。页头搜索框提交标题关键词后导航至 `/posts?keyword=...`；搜索不覆盖版块名称、帖子正文或回复内容。
 
 响应 `data`：数组，元素为 `PostListItemVO`；前端自行分页展示。
 
@@ -647,7 +658,7 @@ GET /api/posts
 GET /api/posts/{id}
 ```
 
-公开接口。后端可以在访问详情时将 `viewCount` 加 1。
+公开接口。仅帖子自身和所属版块均为 `status=1` 时可访问；后端可以在访问详情时将 `viewCount` 加 1。
 
 路径参数：
 
@@ -727,7 +738,7 @@ true
 GET /api/posts/{postId}/replies
 ```
 
-公开接口。前台默认只返回 `status=1` 的回复。
+公开接口。仅所属帖子及版块可见时可读取；前台默认只返回 `status=1` 的回复。
 
 路径参数：
 
@@ -958,7 +969,7 @@ true
 GET /api/admin/posts
 ```
 
-管理员可查看正常和隐藏帖子。
+管理员可查看正常和隐藏帖子，包括所属版块已停用的帖子。
 
 查询参数：
 
@@ -1027,7 +1038,7 @@ true
 GET /api/admin/replies
 ```
 
-管理员可查看全部正常和隐藏回复，用于独立的回复管理页。
+管理员可查看全部正常和隐藏回复，包括所属版块已停用的帖子下的回复，用于独立的回复管理页。
 
 查询参数：
 

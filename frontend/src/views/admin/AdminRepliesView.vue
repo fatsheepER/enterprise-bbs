@@ -17,6 +17,7 @@ const keywordQuery = ref('')
 const replies = ref([])
 const activePage = ref(1)
 const hiddenPage = ref(1)
+let latestRepliesRequestId = 0
 
 const columns = [
   { key: 'id', label: 'ID', className: 'admin-replies-table__id', align: 'center' },
@@ -50,7 +51,7 @@ watch([idQuery, keywordQuery], () => {
 })
 
 const normalizedIdQuery = computed(() => {
-  const value = idQuery.value.trim()
+  const value = String(idQuery.value).trim()
 
   return value ? Number(value) : null
 })
@@ -65,12 +66,17 @@ async function loadReplies() {
     return
   }
 
+  const requestId = ++latestRepliesRequestId
   const { id, keyword } = replyFilters.value
 
-  replies.value = await getAdminReplies({
+  const nextReplies = await getAdminReplies({
     id,
     keyword,
   })
+
+  if (requestId === latestRepliesRequestId) {
+    replies.value = nextReplies
+  }
 }
 
 onMounted(loadReplies)
