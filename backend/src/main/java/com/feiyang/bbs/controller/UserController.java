@@ -15,12 +15,15 @@ import com.feiyang.bbs.vo.UserVO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/user")
@@ -49,6 +52,13 @@ public class UserController {
                                         HttpServletRequest request) {
         CurrentUser currentUser = CurrentUser.requireLogin(request);
         return Result.success(userService.updateProfile(currentUser.getId(), dto));
+    }
+
+    @PostMapping(value = "/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Result<UserVO> uploadAvatar(@RequestPart("file") MultipartFile file,
+                                       HttpServletRequest request) {
+        CurrentUser currentUser = CurrentUser.requireLogin(request);
+        return Result.success(userService.uploadAvatar(currentUser.getId(), file));
     }
 
     @PutMapping("/password")

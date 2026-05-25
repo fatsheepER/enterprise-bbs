@@ -22,6 +22,8 @@ public interface UserMapper {
 
     int updateProfile(User user);
 
+    int updateAvatar(@Param("id") Long id, @Param("avatar") String avatar);
+
     int updatePassword(@Param("id") Long id, @Param("password") String password);
 
     List<UserReplyListItemVO> selectUserReplies(@Param("userId") Long userId);

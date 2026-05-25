@@ -85,9 +85,15 @@
     <update id="updateProfile" parameterType="com.feiyang.bbs.entity.User">
         UPDATE users
         SET nickname = COALESCE(#{nickname}, nickname),
-            avatar = COALESCE(#{avatar}, avatar),
             email = COALESCE(#{email}, email),
             bio = COALESCE(#{bio}, bio),
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateAvatar">
+        UPDATE users
+        SET avatar = #{avatar},
             updated_at = CURRENT_TIMESTAMP
         WHERE id = #{id}
     </update>
