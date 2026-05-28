@@ -40,6 +40,10 @@ export async function updateAdminPostStatus(id, status) {
   return withPostDisplayFields(post)
 }
 
+export function deleteAdminPost(id) {
+  return request.delete(`/admin/posts/${id}`)
+}
+
 export async function getAdminReplies(params = {}) {
   const replies = await request.get('/admin/replies', { params })
 
@@ -50,4 +54,8 @@ export async function updateAdminReplyStatus(id, status) {
   const reply = await request.put(`/admin/replies/${id}/status`, { status })
 
   return withReplyDisplayFields(reply)
+}
+
+export function deleteAdminReply(id) {
+  return request.delete(`/admin/replies/${id}`)
 }

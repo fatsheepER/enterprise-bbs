@@ -82,6 +82,7 @@ th.admin-table__cell {
 }
 
 .admin-table__action {
+  min-width: 58px;
   min-height: 34px;
   border: 0;
   border-radius: 8px;
@@ -92,6 +93,14 @@ th.admin-table__cell {
   font: inherit;
   font-size: 13px;
   font-weight: 700;
+  white-space: nowrap;
+}
+
+.admin-table__actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 .admin-table__action:hover,
@@ -107,6 +116,11 @@ th.admin-table__cell {
 .admin-table__action--danger:hover,
 .admin-table__action--danger:focus-visible {
   background: #8f1d14;
+}
+
+.admin-table__action:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
 }
 
 @media (max-width: 980px) {

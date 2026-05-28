@@ -132,6 +132,10 @@
   font-size: 13px;
 }
 
+.admin-posts-page .admin-table__cell--actions {
+  width: 156px;
+}
+
 .admin-posts-title-link {
   display: -webkit-box;
   overflow: hidden;

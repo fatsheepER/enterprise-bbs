@@ -280,7 +280,8 @@ function removeReplyFromList(replyId) {
         ...reply,
         parentReply: {
           ...reply.parentReply,
-          contentPreview: '回复已隐藏',
+          authorName: '已移除',
+          contentPreview: '该评论已移除',
         },
       }
     })

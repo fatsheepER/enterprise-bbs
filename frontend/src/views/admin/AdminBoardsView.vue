@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 
 import {
   createAdminBoard,
+  deleteAdminBoard,
   getAdminBoards,
   updateAdminBoard,
 } from '@/api/admin'
@@ -19,6 +20,7 @@ const keywordQuery = ref('')
 const boards = ref([])
 const isDialogOpen = ref(false)
 const editingBoardId = ref(null)
+const deletingBoardId = ref(null)
 const formError = ref('')
 let latestBoardsRequestId = 0
 
@@ -90,6 +92,10 @@ watch([idQuery, keywordQuery], loadBoards)
 
 const activeBoards = computed(() => boards.value.filter((board) => board.status === 1))
 const disabledBoards = computed(() => boards.value.filter((board) => board.status === 0))
+const editingBoard = computed(() =>
+  boards.value.find((board) => board.id === editingBoardId.value) ?? null,
+)
+const canDeleteEditingBoard = computed(() => editingBoard.value?.status === 0)
 const dialogTitle = computed(() => (editingBoardId.value ? '管理版块' : '新建版块'))
 const submitText = computed(() => (editingBoardId.value ? '保存修改' : '创建版块'))
 
@@ -148,6 +154,27 @@ async function saveBoard() {
     closeDialog()
   } catch (error) {
     formError.value = error.message
+  }
+}
+
+async function deleteBoard(board) {
+  const confirmed = window.confirm(
+    `确定要永久删除版块“${board.name}”吗？该版块下所有帖子和回复也会一并删除。`,
+  )
+
+  if (!confirmed) {
+    return
+  }
+
+  try {
+    deletingBoardId.value = board.id
+    await deleteAdminBoard(board.id)
+    await loadBoards()
+    closeDialog()
+  } catch (error) {
+    window.alert(error.message || '删除版块失败')
+  } finally {
+    deletingBoardId.value = null
   }
 }
 
@@ -322,8 +349,21 @@ function splitDateTime(dateTime) {
         <p v-if="formError" class="admin-board-form__error">{{ formError }}</p>
 
         <div class="admin-board-dialog__actions">
-          <button class="admin-board-dialog__cancel" type="button" @click="closeDialog">取消</button>
-          <button class="admin-board-dialog__submit" type="submit">{{ submitText }}</button>
+          <button
+            v-if="canDeleteEditingBoard"
+            class="admin-board-dialog__delete"
+            type="button"
+            :disabled="deletingBoardId === editingBoard.id"
+            @click="deleteBoard(editingBoard)"
+          >
+            {{ deletingBoardId === editingBoard.id ? '删除中' : '删除版块' }}
+          </button>
+          <div class="admin-board-dialog__main-actions">
+            <button class="admin-board-dialog__cancel" type="button" @click="closeDialog">
+              取消
+            </button>
+            <button class="admin-board-dialog__submit" type="submit">{{ submitText }}</button>
+          </div>
         </div>
       </form>
     </div>

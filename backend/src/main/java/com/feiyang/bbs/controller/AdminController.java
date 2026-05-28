@@ -64,7 +64,7 @@ public class AdminController {
     @DeleteMapping("/boards/{id}")
     public Result<Boolean> deleteBoard(@PathVariable Long id, HttpServletRequest request) {
         CurrentUser currentUser = CurrentUser.requireAdmin(request);
-        return Result.success(adminService.disableBoard(currentUser.getId(), id));
+        return Result.success(adminService.deleteBoard(currentUser.getId(), id));
     }
 
     @GetMapping("/posts")
@@ -88,7 +88,7 @@ public class AdminController {
     @DeleteMapping("/posts/{id}")
     public Result<Boolean> deletePost(@PathVariable Long id, HttpServletRequest request) {
         CurrentUser currentUser = CurrentUser.requireAdmin(request);
-        return Result.success(adminService.hidePost(currentUser.getId(), id));
+        return Result.success(adminService.deletePost(currentUser.getId(), id));
     }
 
     @GetMapping("/replies")
@@ -120,6 +120,6 @@ public class AdminController {
     @DeleteMapping("/replies/{id}")
     public Result<Boolean> deleteReply(@PathVariable Long id, HttpServletRequest request) {
         CurrentUser currentUser = CurrentUser.requireAdmin(request);
-        return Result.success(adminService.hideReply(currentUser.getId(), id));
+        return Result.success(adminService.deleteReply(currentUser.getId(), id));
     }
 }

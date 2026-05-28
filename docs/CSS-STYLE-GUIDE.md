@@ -52,6 +52,7 @@ frontend/src/assets/styles/
 | 浏览器基础样式 | `styles/base.css` | `*`、`:root`、`body`、原生 `button`、`input`、`textarea`、`a` 等基础元素规则 |
 | 应用布局壳 | `styles/layout.css` | `.app-shell`、`.content-width`、`.page-shell` 等影响整体页面容器的规则 |
 | 可复用组件 | `styles/components/*.css` | 对应 `src/components` 中的组件，或被多个页面共用的 UI 块 |
+| 管理端表格与操作按钮组 | `styles/components/admin-table.css` | `AdminTable.vue`、`.admin-table__actions`、`.admin-table__action` 等跨管理页复用的表格和操作样式 |
 | 单页面样式 | `styles/pages/*.css` | 只服务一个 route view 的页面结构和页面状态 |
 | 管理端页面 | `styles/pages/admin/*.css` | 未来新增 `/admin/**` 页面后，按管理端页面继续拆分 |
 

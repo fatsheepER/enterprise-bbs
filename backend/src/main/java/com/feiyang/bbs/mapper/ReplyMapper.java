@@ -23,4 +23,10 @@ public interface ReplyMapper {
                                      @Param("status") Integer status);
 
     int updateStatus(@Param("id") Long id, @Param("status") Integer status);
+
+    int deleteById(@Param("id") Long id);
+
+    int deleteByPostId(@Param("postId") Long postId);
+
+    int deleteByBoardId(@Param("boardId") Long boardId);
 }

@@ -128,6 +128,10 @@
   font-size: 13px;
 }
 
+.admin-replies-page .admin-table__cell--actions {
+  width: 156px;
+}
+
 .admin-replies-content {
   display: -webkit-box;
   overflow: hidden;

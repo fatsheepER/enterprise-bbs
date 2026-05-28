@@ -18,17 +18,17 @@ public interface AdminService {
 
     BoardVO updateBoard(Long currentUserId, Long id, BoardSaveDTO dto);
 
-    Boolean disableBoard(Long currentUserId, Long id);
+    Boolean deleteBoard(Long currentUserId, Long id);
 
     List<PostListItemVO> listPosts(Long currentUserId, Long id, Long boardId, String keyword, Integer status);
 
     PostDetailVO updatePostStatus(Long currentUserId, Long id, Integer status);
 
-    Boolean hidePost(Long currentUserId, Long id);
+    Boolean deletePost(Long currentUserId, Long id);
 
     List<ReplyVO> listReplies(Long currentUserId, Long id, Long postId, String keyword, Integer status);
 
     ReplyVO updateReplyStatus(Long currentUserId, Long id, Integer status);
 
-    Boolean hideReply(Long currentUserId, Long id);
+    Boolean deleteReply(Long currentUserId, Long id);
 }

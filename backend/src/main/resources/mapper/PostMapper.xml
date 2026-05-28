@@ -165,4 +165,14 @@
             updated_at = CURRENT_TIMESTAMP
         WHERE id = #{id}
     </update>
+
+    <delete id="deleteById">
+        DELETE FROM posts
+        WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteByBoardId">
+        DELETE FROM posts
+        WHERE board_id = #{boardId}
+    </delete>
 </mapper>

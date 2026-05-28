@@ -33,4 +33,8 @@ public interface PostMapper {
     int touchUpdatedAt(@Param("id") Long id);
 
     int updateStatus(@Param("id") Long id, @Param("status") Integer status);
+
+    int deleteById(@Param("id") Long id);
+
+    int deleteByBoardId(@Param("boardId") Long boardId);
 }

@@ -30,4 +30,6 @@ public interface BoardMapper {
     int countByNameExcludeId(@Param("name") String name, @Param("id") Long id);
 
     int updateStatus(@Param("id") Long id, @Param("status") Integer status);
+
+    int deleteById(@Param("id") Long id);
 }

@@ -39,10 +39,13 @@
             u.avatar AS author_avatar,
             u.role AS author_role,
             r.parent_reply_id,
-            COALESCE(NULLIF(pu.nickname, ''), pu.username) AS parent_author_name,
             CASE
-                WHEN pr.id IS NULL THEN NULL
-                WHEN pr.status = 0 THEN '回复已隐藏'
+                WHEN r.parent_reply_id IS NOT NULL AND (pr.id IS NULL OR pr.status = 0) THEN '已移除'
+                ELSE COALESCE(NULLIF(pu.nickname, ''), pu.username)
+            END AS parent_author_name,
+            CASE
+                WHEN r.parent_reply_id IS NULL THEN NULL
+                WHEN pr.id IS NULL OR pr.status = 0 THEN '该评论已移除'
                 WHEN length(pr.content) > 80 THEN substring(pr.content from 1 for 80) || '...'
                 ELSE pr.content
             END AS parent_content_preview,
@@ -107,4 +110,21 @@
             updated_at = CURRENT_TIMESTAMP
         WHERE id = #{id}
     </update>
+
+    <delete id="deleteById">
+        DELETE FROM replies
+        WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteByPostId">
+        DELETE FROM replies
+        WHERE post_id = #{postId}
+    </delete>
+
+    <delete id="deleteByBoardId">
+        DELETE FROM replies r
+        USING posts p
+        WHERE r.post_id = p.id
+          AND p.board_id = #{boardId}
+    </delete>
 </mapper>

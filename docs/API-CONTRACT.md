@@ -275,7 +275,7 @@ X-User-Role: ADMIN
 }
 ```
 
-如果 `parentReplyId` 指向的父回复已隐藏，`parentReply.contentPreview` 返回固定文案 `回复已隐藏`，用于帖子详情页引用区域展示。
+如果 `parentReplyId` 指向的父回复已隐藏或已被管理员永久删除，`parentReply.contentPreview` 返回固定文案 `该评论已移除`，用于帖子详情页引用区域展示。
 
 ### 5.6 UserReplyListItemVO
 
@@ -988,7 +988,7 @@ PUT /api/admin/boards/{id}
 DELETE /api/admin/boards/{id}
 ```
 
-建议后端软删除或停用，将版块 `status` 更新为 `0`。若版块下已有帖子，不建议物理删除。
+用于管理员从管理端永久删除已停用版块。删除版块会级联删除其下所有帖子和回复；前端只在停用版块 section 中提供该操作，正常版块应先通过修改版块状态停用。
 
 路径参数：
 
@@ -1057,7 +1057,7 @@ PUT /api/admin/posts/{id}/status
 DELETE /api/admin/posts/{id}
 ```
 
-用于管理员从管理端隐藏帖子。语义等同于将帖子 `status` 更新为 `0`。
+用于管理员从管理端永久删除已隐藏帖子。删除帖子会级联删除其下所有回复；前端只在隐藏帖子 section 中提供该操作，正常帖子应先通过 `PUT /api/admin/posts/{id}/status` 隐藏。
 
 路径参数：
 
@@ -1148,7 +1148,7 @@ PUT /api/admin/replies/{id}/status
 DELETE /api/admin/replies/{id}
 ```
 
-用于管理员从管理端隐藏回复。语义等同于将回复 `status` 更新为 `0`，前端优先使用 `PUT /api/admin/replies/{id}/status` 表达隐藏和恢复。
+用于管理员从管理端永久删除已隐藏回复。删除回复不会级联删除引用它的子回复；子回复保留，引用区域统一显示 `该评论已移除`。前端只在隐藏回复 section 中提供该操作，正常回复应先通过 `PUT /api/admin/replies/{id}/status` 隐藏。
 
 路径参数：
 
@@ -1265,11 +1265,11 @@ true
 | 管理员 | `GET` | `/api/admin/boards` | 管理员 | 管理端版块列表 |
 | 管理员 | `POST` | `/api/admin/boards` | 管理员 | 新增版块 |
 | 管理员 | `PUT` | `/api/admin/boards/{id}` | 管理员 | 修改版块 |
-| 管理员 | `DELETE` | `/api/admin/boards/{id}` | 管理员 | 删除或停用版块 |
+| 管理员 | `DELETE` | `/api/admin/boards/{id}` | 管理员 | 永久删除停用版块 |
 | 管理员 | `GET` | `/api/admin/posts` | 管理员 | 管理端帖子列表 |
 | 管理员 | `PUT` | `/api/admin/posts/{id}/status` | 管理员 | 修改帖子状态 |
-| 管理员 | `DELETE` | `/api/admin/posts/{id}` | 管理员 | 管理员删除或隐藏帖子 |
+| 管理员 | `DELETE` | `/api/admin/posts/{id}` | 管理员 | 永久删除隐藏帖子 |
 | 管理员 | `GET` | `/api/admin/replies` | 管理员 | 管理端全部回复列表 |
 | 管理员 | `GET` | `/api/admin/posts/{postId}/replies` | 管理员 | 管理端帖子回复列表 |
 | 管理员 | `PUT` | `/api/admin/replies/{id}/status` | 管理员 | 修改回复状态 |
-| 管理员 | `DELETE` | `/api/admin/replies/{id}` | 管理员 | 管理员删除或隐藏回复 |
+| 管理员 | `DELETE` | `/api/admin/replies/{id}` | 管理员 | 永久删除隐藏回复 |

@@ -92,10 +92,13 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional
-    public Boolean disableBoard(Long currentUserId, Long id) {
+    public Boolean deleteBoard(Long currentUserId, Long id) {
         ensureAdmin(currentUserId);
-        requireBoard(id);
-        boardMapper.updateStatus(id, 0);
+        Board board = requireBoard(id);
+        ensureDeletedFromHiddenSection(board.getStatus(), "请先停用版块后再删除");
+        replyMapper.deleteByBoardId(id);
+        postMapper.deleteByBoardId(id);
+        boardMapper.deleteById(id);
         return true;
     }
 
@@ -116,10 +119,12 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional
-    public Boolean hidePost(Long currentUserId, Long id) {
+    public Boolean deletePost(Long currentUserId, Long id) {
         ensureAdmin(currentUserId);
-        requirePost(id);
-        postMapper.updateStatus(id, 0);
+        Post post = requirePost(id);
+        ensureDeletedFromHiddenSection(post.getStatus(), "请先隐藏帖子后再删除");
+        replyMapper.deleteByPostId(id);
+        postMapper.deleteById(id);
         return true;
     }
 
@@ -141,10 +146,11 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional
-    public Boolean hideReply(Long currentUserId, Long id) {
+    public Boolean deleteReply(Long currentUserId, Long id) {
         ensureAdmin(currentUserId);
         Reply reply = requireReply(id);
-        replyMapper.updateStatus(id, 0);
+        ensureDeletedFromHiddenSection(reply.getStatus(), "请先隐藏回复后再删除");
+        replyMapper.deleteById(id);
         postMapper.touchUpdatedAt(reply.getPostId());
         return true;
     }
@@ -205,6 +211,12 @@ public class AdminServiceImpl implements AdminService {
             throw new BusinessException(ErrorCode.NOT_FOUND);
         }
         return reply;
+    }
+
+    private void ensureDeletedFromHiddenSection(Integer status, String message) {
+        if (!Integer.valueOf(0).equals(status)) {
+            throw new BusinessException(ErrorCode.RESOURCE_UNAVAILABLE, message);
+        }
     }
 
     private Integer normalizeStatus(Integer status) {
