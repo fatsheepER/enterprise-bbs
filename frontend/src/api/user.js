@@ -12,6 +12,10 @@ export function getUserProfile() {
   return request.get('/user/profile')
 }
 
+export function getUserProfileById(id) {
+  return request.get(`/user/profile/${id}`)
+}
+
 export function updateUserProfile(data) {
   return request.put('/user/profile', data)
 }
@@ -28,4 +32,8 @@ export function updateUserPassword(data) {
 
 export function getUserReplies() {
   return request.get('/user/replies')
+}
+
+export function getUserRepliesById(id) {
+  return request.get(`/user/${id}/replies`)
 }

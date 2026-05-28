@@ -23,6 +23,16 @@
   place-items: center;
   border-radius: 999px;
   background: #e8e8ed;
+  text-decoration: none;
+  transition:
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+
+a.post-block__avatar:hover,
+a.post-block__avatar:focus-visible {
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.18);
+  transform: translateY(-1px);
 }
 
 .post-block__avatar-image {

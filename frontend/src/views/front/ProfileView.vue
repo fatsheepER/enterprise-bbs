@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, watchEffect } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import { getPosts } from '@/api/posts'
@@ -8,48 +8,105 @@ import PostTable from '@/components/PostTable.vue'
 import eyeIcon from '@/assets/eye.svg'
 import gearIcon from '@/assets/gear.svg'
 import personPlaceholder from '@/assets/person-placeholder.svg'
-import { getUserReplies } from '@/api/user'
+import { getUserProfileById, getUserReplies, getUserRepliesById } from '@/api/user'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
 const route = useRoute()
 const router = useRouter()
 const activeTab = ref('posts')
+const profileUser = ref(null)
 const userPosts = ref([])
 const userReplyList = ref([])
+const profileLoadError = ref('')
 const confirmingDeleteReplyIds = ref(new Set())
 const deletingReplyIds = ref(new Set())
 const deleteReplyErrors = ref({})
 const deleteReplyTimers = new Map()
+let loadSequence = 0
 
-watchEffect(() => {
-  if (!authStore.isLoggedIn) {
+const isCurrentProfileRoute = computed(() => route.name === 'profile')
+const targetUserId = computed(() => {
+  if (isCurrentProfileRoute.value) {
+    return authStore.currentUser?.id ?? null
+  }
+
+  const routeUserId = Number(route.params.id)
+
+  return Number.isFinite(routeUserId) && routeUserId > 0 ? routeUserId : null
+})
+const isOwnProfile = computed(
+  () => Boolean(authStore.currentUser?.id) && profileUser.value?.id === authStore.currentUser.id,
+)
+const displayName = computed(
+  () => profileUser.value?.nickname || profileUser.value?.username || '用户',
+)
+const displaySubject = computed(() => (isOwnProfile.value ? '你' : 'TA'))
+const avatarSrc = computed(() => profileUser.value?.avatar || personPlaceholder)
+const isProfileAdmin = computed(() => profileUser.value?.role === 'ADMIN')
+
+watch([targetUserId, isCurrentProfileRoute], loadProfile, { immediate: true })
+onBeforeUnmount(clearAllReplyDeleteConfirmations)
+
+async function loadProfile() {
+  const sequence = ++loadSequence
+
+  clearAllReplyDeleteConfirmations()
+  deleteReplyErrors.value = {}
+  userPosts.value = []
+  userReplyList.value = []
+  profileLoadError.value = ''
+
+  if (isCurrentProfileRoute.value && !authStore.isLoggedIn) {
+    profileUser.value = null
     router.replace({
       path: '/login',
       query: { redirect: route.fullPath },
     })
-  }
-})
-
-const currentUser = computed(() => authStore.currentUser)
-const displayName = computed(
-  () => currentUser.value?.nickname || currentUser.value?.username || '当前用户',
-)
-const avatarSrc = computed(() => currentUser.value?.avatar || personPlaceholder)
-onMounted(async () => {
-  if (!currentUser.value) {
     return
   }
 
-  const [postList, replyList] = await Promise.all([
-    getPosts({ userId: currentUser.value.id }),
-    getUserReplies(),
-  ])
+  if (!targetUserId.value) {
+    profileUser.value = null
+    profileLoadError.value = '用户不存在'
+    return
+  }
 
-  userPosts.value = postList
-  userReplyList.value = replyList
-})
-onBeforeUnmount(clearAllReplyDeleteConfirmations)
+  try {
+    const profilePromise = isOwnTargetUser()
+      ? Promise.resolve(authStore.currentUser)
+      : getUserProfileById(targetUserId.value)
+    const repliesPromise = isOwnTargetUser()
+      ? getUserReplies()
+      : getUserRepliesById(targetUserId.value)
+    const [loadedUser, postList, replyList] = await Promise.all([
+      profilePromise,
+      getPosts({ userId: targetUserId.value }),
+      repliesPromise,
+    ])
+
+    if (sequence !== loadSequence) {
+      return
+    }
+
+    profileUser.value = loadedUser
+    userPosts.value = postList
+    userReplyList.value = replyList
+  } catch (error) {
+    if (sequence !== loadSequence) {
+      return
+    }
+
+    profileUser.value = null
+    userPosts.value = []
+    userReplyList.value = []
+    profileLoadError.value = error.message || '用户资料加载失败'
+  }
+}
+
+function isOwnTargetUser() {
+  return Boolean(authStore.currentUser?.id) && targetUserId.value === authStore.currentUser.id
+}
 
 function formatDisplayDate(dateTime) {
   return dateTime?.slice(0, 10) ?? ''
@@ -97,7 +154,7 @@ function clearReplyDeleteError(replyId) {
 }
 
 async function deleteOwnReply(replyId) {
-  if (isDeletingReply(replyId)) {
+  if (!isOwnProfile.value || isDeletingReply(replyId)) {
     return
   }
 
@@ -136,9 +193,14 @@ async function deleteOwnReply(replyId) {
 </script>
 
 <template>
-  <section v-if="currentUser" class="profile-page">
+  <section v-if="profileUser" class="profile-page">
     <article class="profile-hero">
-      <RouterLink class="profile-hero__settings" to="/profile/edit" aria-label="设置">
+      <RouterLink
+        v-if="isOwnProfile"
+        class="profile-hero__settings"
+        to="/profile/edit"
+        aria-label="设置"
+      >
         <img class="profile-hero__settings-icon" :src="gearIcon" alt="" />
       </RouterLink>
 
@@ -149,21 +211,21 @@ async function deleteOwnReply(replyId) {
       <div class="profile-hero__body">
         <div class="profile-hero__title-row">
           <h1 class="profile-hero__name">{{ displayName }}</h1>
-          <span v-if="authStore.isAdmin" class="profile-hero__badge">管理员</span>
+          <span v-if="isProfileAdmin" class="profile-hero__badge">管理员</span>
         </div>
 
         <p class="profile-hero__bio">
-          {{ currentUser.bio || '这个用户暂未填写个人简介。' }}
+          {{ profileUser.bio || '这个用户暂未填写个人简介。' }}
         </p>
 
         <dl class="profile-hero__meta">
           <div class="profile-hero__meta-item">
             <dt>用户名</dt>
-            <dd>{{ currentUser.username }}</dd>
+            <dd>{{ profileUser.username }}</dd>
           </div>
           <div class="profile-hero__meta-item">
             <dt>电子邮箱</dt>
-            <dd>{{ currentUser.email || '未填写' }}</dd>
+            <dd>{{ profileUser.email || '未填写' }}</dd>
           </div>
         </dl>
       </div>
@@ -194,15 +256,15 @@ async function deleteOwnReply(replyId) {
       <PostTable
         v-if="activeTab === 'posts'"
         :posts="userPosts"
-        aria-label="我的发帖列表"
-        empty-text="你还没有发表过帖子"
+        :aria-label="`${displayName}的发帖列表`"
+        :empty-text="`${displaySubject}还没有发表过帖子`"
       />
 
-      <section v-else class="profile-replies" aria-label="我的回复列表">
+      <section v-else class="profile-replies" :aria-label="`${displayName}的回复列表`">
         <template v-if="userReplyList.length === 0">
           <article class="profile-empty">
             <h2 class="profile-empty__title">暂无回复</h2>
-            <p class="profile-empty__message">你发表的回复会显示在这里。</p>
+            <p class="profile-empty__message">{{ displaySubject }}发表的回复会显示在这里。</p>
           </article>
         </template>
 
@@ -267,6 +329,7 @@ async function deleteOwnReply(replyId) {
                   {{ deleteReplyErrors[reply.id] }}
                 </span>
                 <button
+                  v-if="isOwnProfile"
                   class="profile-reply__delete-button"
                   :class="{
                     'profile-reply__delete-button--confirm':
@@ -298,5 +361,12 @@ async function deleteOwnReply(replyId) {
         </template>
       </section>
     </section>
+  </section>
+
+  <section v-else-if="profileLoadError" class="profile-page">
+    <article class="profile-empty">
+      <h1 class="profile-empty__title">无法显示用户资料</h1>
+      <p class="profile-empty__message">{{ profileLoadError }}</p>
+    </article>
   </section>
 </template>

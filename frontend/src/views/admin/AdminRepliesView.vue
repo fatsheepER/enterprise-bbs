@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import { getAdminReplies, updateAdminReplyStatus } from '@/api/admin'
+import { deleteAdminReply, getAdminReplies, updateAdminReplyStatus } from '@/api/admin'
 import AdminTable from '@/components/AdminTable.vue'
 import { useAuthStore } from '@/stores/auth'
 
@@ -17,6 +17,7 @@ const keywordQuery = ref('')
 const replies = ref([])
 const activePage = ref(1)
 const hiddenPage = ref(1)
+const deletingReplyId = ref(null)
 let latestRepliesRequestId = 0
 
 const columns = [
@@ -111,11 +112,37 @@ function splitDateTime(dateTime) {
   }
 }
 
+function isReplyInHiddenContext(reply) {
+  return reply.postStatus === 0 || reply.boardStatus === 0
+}
+
 async function setReplyStatus(reply, status) {
   await updateAdminReplyStatus(reply.id, status)
   await loadReplies()
   activePage.value = Math.min(activePage.value, activeTotalPages.value)
   hiddenPage.value = Math.min(hiddenPage.value, hiddenTotalPages.value)
+}
+
+async function deleteHiddenReply(reply) {
+  const confirmed = window.confirm(
+    `确定要永久删除回复 #${reply.id} 吗？引用它的回复会保留，并显示“该评论已移除”。`,
+  )
+
+  if (!confirmed) {
+    return
+  }
+
+  try {
+    deletingReplyId.value = reply.id
+    await deleteAdminReply(reply.id)
+    await loadReplies()
+    activePage.value = Math.min(activePage.value, activeTotalPages.value)
+    hiddenPage.value = Math.min(hiddenPage.value, hiddenTotalPages.value)
+  } catch (error) {
+    window.alert(error.message || '删除回复失败')
+  } finally {
+    deletingReplyId.value = null
+  }
 }
 
 function previousActivePage() {
@@ -170,7 +197,13 @@ function nextHiddenPage() {
       >
         <template #cell-contentPreview="{ row, value }">
           <RouterLink class="admin-replies-content admin-replies-content-link" :to="row.href">
-            {{ value }}
+            <span
+              :class="{
+                'admin-replies-content--in-hidden-context': isReplyInHiddenContext(row),
+              }"
+            >
+              {{ value }}
+            </span>
           </RouterLink>
         </template>
 
@@ -221,8 +254,13 @@ function nextHiddenPage() {
         aria-label="隐藏回复列表"
         empty-text="暂无隐藏回复"
       >
-        <template #cell-contentPreview="{ value }">
-          <span class="admin-replies-content">{{ value }}</span>
+        <template #cell-contentPreview="{ row, value }">
+          <span
+            class="admin-replies-content"
+            :class="{ 'admin-replies-content--in-hidden-context': isReplyInHiddenContext(row) }"
+          >
+            {{ value }}
+          </span>
         </template>
 
         <template #cell-createdAt="{ value }">
@@ -233,9 +271,19 @@ function nextHiddenPage() {
         </template>
 
         <template #actions="{ row }">
-          <button class="admin-table__action" type="button" @click="setReplyStatus(row, 1)">
-            恢复
-          </button>
+          <div class="admin-table__actions">
+            <button class="admin-table__action" type="button" @click="setReplyStatus(row, 1)">
+              恢复
+            </button>
+            <button
+              class="admin-table__action admin-table__action--danger"
+              type="button"
+              :disabled="deletingReplyId === row.id"
+              @click="deleteHiddenReply(row)"
+            >
+              {{ deletingReplyId === row.id ? '删除中' : '删除' }}
+            </button>
+          </div>
         </template>
       </AdminTable>
 

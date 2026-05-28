@@ -128,6 +128,10 @@
   font-size: 13px;
 }
 
+.admin-replies-page .admin-table__cell--actions {
+  width: 156px;
+}
+
 .admin-replies-content {
   display: -webkit-box;
   overflow: hidden;
@@ -135,6 +139,12 @@
   -webkit-line-clamp: 2;
   color: #1d1d1f;
   line-height: 1.35;
+}
+
+.admin-replies-content--in-hidden-context {
+  color: #8e8e93;
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
 }
 
 .admin-replies-content-link:hover,

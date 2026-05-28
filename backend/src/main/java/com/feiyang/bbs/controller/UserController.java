@@ -17,6 +17,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -47,6 +48,11 @@ public class UserController {
         return Result.success(userService.getProfile(currentUser.getId()));
     }
 
+    @GetMapping("/profile/{id}")
+    public Result<UserVO> profileById(@PathVariable Long id) {
+        return Result.success(userService.getProfile(id));
+    }
+
     @PutMapping("/profile")
     public Result<UserVO> updateProfile(@Valid @RequestBody UserProfileUpdateDTO dto,
                                         HttpServletRequest request) {
@@ -72,5 +78,10 @@ public class UserController {
     public Result<List<UserReplyListItemVO>> replies(HttpServletRequest request) {
         CurrentUser currentUser = CurrentUser.requireLogin(request);
         return Result.success(userService.getReplies(currentUser.getId()));
+    }
+
+    @GetMapping("/{id}/replies")
+    public Result<List<UserReplyListItemVO>> repliesByUserId(@PathVariable Long id) {
+        return Result.success(userService.getReplies(id));
     }
 }

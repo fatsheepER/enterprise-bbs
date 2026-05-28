@@ -88,11 +88,11 @@ const visibleReplyCount = computed(() => replies.value.length)
 const replyPlaceholder = computed(() => `回复： ${replyTarget.value?.contentPreview ?? ''}`)
 const canSubmit = computed(() => draft.value.trim().length > 0)
 const canDeletePost = computed(
-  () => post.value?.userId === authStore.currentUser?.id,
+  () => !authStore.isAdmin && post.value?.userId === authStore.currentUser?.id,
 )
 
 function canDeleteReply(reply) {
-  return reply.userId === authStore.currentUser?.id
+  return !authStore.isAdmin && reply.userId === authStore.currentUser?.id
 }
 
 function requireLogin() {
@@ -276,7 +276,14 @@ function removeReplyFromList(replyId) {
         return reply
       }
 
-      return { ...reply, parentReply: null }
+      return {
+        ...reply,
+        parentReply: {
+          ...reply.parentReply,
+          authorName: '已移除',
+          contentPreview: '该评论已移除',
+        },
+      }
     })
 
   if (replyTarget.value?.type === 'reply' && replyTarget.value.id === replyId) {
@@ -440,9 +447,13 @@ async function submitReply() {
 
     <article class="post-block post-block--main">
       <div class="post-block__header">
-        <div class="post-block__avatar" aria-hidden="true">
+        <RouterLink
+          class="post-block__avatar"
+          :to="{ name: 'profile-detail', params: { id: post.userId } }"
+          :aria-label="`查看 ${post.authorName} 的个人主页`"
+        >
           <img class="post-block__avatar-image" :src="avatarSrc(post.authorAvatar)" alt="" />
-        </div>
+        </RouterLink>
 
         <div class="post-block__meta-row">
           <div class="post-block__author-group">
@@ -491,9 +502,13 @@ async function submitReply() {
         class="post-block post-block--reply"
       >
         <div class="post-block__header">
-          <div class="post-block__avatar" aria-hidden="true">
+          <RouterLink
+            class="post-block__avatar"
+            :to="{ name: 'profile-detail', params: { id: reply.userId } }"
+            :aria-label="`查看 ${reply.authorName} 的个人主页`"
+          >
             <img class="post-block__avatar-image" :src="avatarSrc(reply.authorAvatar)" alt="" />
-          </div>
+          </RouterLink>
 
           <div class="post-block__meta-row">
             <div class="post-block__author-group">

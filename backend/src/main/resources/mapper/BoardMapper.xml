@@ -145,4 +145,9 @@
             updated_at = CURRENT_TIMESTAMP
         WHERE id = #{id}
     </update>
+
+    <delete id="deleteById">
+        DELETE FROM boards
+        WHERE id = #{id}
+    </delete>
 </mapper>

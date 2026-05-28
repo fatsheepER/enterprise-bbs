@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import { getAdminPosts, updateAdminPostStatus } from '@/api/admin'
+import { deleteAdminPost, getAdminPosts, updateAdminPostStatus } from '@/api/admin'
 import AdminTable from '@/components/AdminTable.vue'
 import { useAuthStore } from '@/stores/auth'
 
@@ -17,6 +17,7 @@ const keywordQuery = ref('')
 const posts = ref([])
 const activePage = ref(1)
 const hiddenPage = ref(1)
+const deletingPostId = ref(null)
 let latestPostsRequestId = 0
 
 const columns = [
@@ -119,11 +120,37 @@ function splitDateTime(dateTime) {
   }
 }
 
+function isPostInHiddenBoard(post) {
+  return post.boardStatus === 0
+}
+
 async function setPostStatus(post, status) {
   await updateAdminPostStatus(post.id, status)
   await loadPosts()
   activePage.value = Math.min(activePage.value, activeTotalPages.value)
   hiddenPage.value = Math.min(hiddenPage.value, hiddenTotalPages.value)
+}
+
+async function deleteHiddenPost(post) {
+  const confirmed = window.confirm(
+    `确定要永久删除帖子“${post.title}”吗？该帖子下所有回复也会一并删除。`,
+  )
+
+  if (!confirmed) {
+    return
+  }
+
+  try {
+    deletingPostId.value = post.id
+    await deleteAdminPost(post.id)
+    await loadPosts()
+    activePage.value = Math.min(activePage.value, activeTotalPages.value)
+    hiddenPage.value = Math.min(hiddenPage.value, hiddenTotalPages.value)
+  } catch (error) {
+    window.alert(error.message || '删除帖子失败')
+  } finally {
+    deletingPostId.value = null
+  }
 }
 
 function previousActivePage() {
@@ -179,6 +206,7 @@ function nextHiddenPage() {
         <template #cell-title="{ row, value }">
           <RouterLink
             class="admin-posts-title-link"
+            :class="{ 'admin-posts-title-link--in-hidden-board': isPostInHiddenBoard(row) }"
             :to="{ name: 'post-detail', params: { id: row.id } }"
           >
             {{ value }}
@@ -241,6 +269,7 @@ function nextHiddenPage() {
         <template #cell-title="{ row, value }">
           <RouterLink
             class="admin-posts-title-link"
+            :class="{ 'admin-posts-title-link--in-hidden-board': isPostInHiddenBoard(row) }"
             :to="{ name: 'post-detail', params: { id: row.id } }"
           >
             {{ value }}
@@ -265,9 +294,19 @@ function nextHiddenPage() {
         </template>
 
         <template #actions="{ row }">
-          <button class="admin-table__action" type="button" @click="setPostStatus(row, 1)">
-            恢复
-          </button>
+          <div class="admin-table__actions">
+            <button class="admin-table__action" type="button" @click="setPostStatus(row, 1)">
+              恢复
+            </button>
+            <button
+              class="admin-table__action admin-table__action--danger"
+              type="button"
+              :disabled="deletingPostId === row.id"
+              @click="deleteHiddenPost(row)"
+            >
+              {{ deletingPostId === row.id ? '删除中' : '删除' }}
+            </button>
+          </div>
         </template>
       </AdminTable>
 

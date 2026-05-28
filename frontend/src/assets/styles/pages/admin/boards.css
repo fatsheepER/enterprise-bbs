@@ -274,12 +274,20 @@
 
 .admin-board-dialog__actions {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
   gap: 12px;
   margin-top: 24px;
 }
 
+.admin-board-dialog__main-actions {
+  display: flex;
+  gap: 12px;
+  margin-left: auto;
+}
+
 .admin-board-dialog__cancel,
+.admin-board-dialog__delete,
 .admin-board-dialog__submit {
   min-height: 40px;
   border: 0;
@@ -301,6 +309,11 @@
   color: #fff;
 }
 
+.admin-board-dialog__delete {
+  background: #b42318;
+  color: #fff;
+}
+
 .admin-board-dialog__cancel:hover,
 .admin-board-dialog__cancel:focus-visible {
   background: #e8e8ed;
@@ -311,6 +324,17 @@
 .admin-board-dialog__submit:focus-visible {
   background: #333336;
   outline: none;
+}
+
+.admin-board-dialog__delete:hover,
+.admin-board-dialog__delete:focus-visible {
+  background: #8f1d14;
+  outline: none;
+}
+
+.admin-board-dialog__delete:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
 }
 
 @media (max-width: 760px) {
@@ -335,5 +359,16 @@
   .admin-board-dialog {
     align-items: start;
     padding: 18px;
+  }
+
+  .admin-board-dialog__actions,
+  .admin-board-dialog__main-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-board-dialog__main-actions {
+    width: 100%;
+    margin-left: 0;
   }
 }

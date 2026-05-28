@@ -127,14 +127,16 @@
             b.name AS board_name,
             b.color_hex AS board_color_hex,
             CASE WHEN r.parent_reply_id IS NULL THEN 'post' ELSE 'reply' END AS reference_type,
-            COALESCE(pr.id, p.id) AS reference_id,
+            CASE WHEN r.parent_reply_id IS NULL THEN p.id ELSE r.parent_reply_id END AS reference_id,
             CASE
                 WHEN r.parent_reply_id IS NULL THEN COALESCE(NULLIF(pu.nickname, ''), pu.username)
+                WHEN pr.id IS NULL OR pr.status = 0 THEN '已移除'
                 ELSE COALESCE(NULLIF(pru.nickname, ''), pru.username)
             END AS reference_author_name,
             CASE
                 WHEN r.parent_reply_id IS NULL AND length(p.content) > 80 THEN substring(p.content from 1 for 80) || '...'
                 WHEN r.parent_reply_id IS NULL THEN p.content
+                WHEN pr.id IS NULL OR pr.status = 0 THEN '该评论已移除'
                 WHEN length(pr.content) > 80 THEN substring(pr.content from 1 for 80) || '...'
                 ELSE pr.content
             END AS reference_content_preview,

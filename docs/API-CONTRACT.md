@@ -120,7 +120,7 @@ X-User-Role: ADMIN
 
 ### 3.3 权限规则
 
-- 未登录用户只能访问注册、登录、版块列表、版块详情、帖子列表、帖子详情、回复列表等公开读取接口。
+- 未登录用户只能访问注册、登录、版块列表、版块详情、帖子列表、帖子详情、回复列表、公开用户资料、公开用户回复列表等公开读取接口。
 - 普通用户可以修改自己的资料、发帖、回复、删除自己的帖子和回复。
 - 管理员可以发帖、回复，并可以访问 `/api/admin/**` 接口管理版块、帖子和回复状态。
 - 后端可以根据 `X-User-Id` 和 `X-User-Role` 做基础权限校验。
@@ -192,6 +192,7 @@ X-User-Role: ADMIN
   "boardId": 1,
   "boardName": "技术交流",
   "boardColorHex": "#007aff",
+  "boardStatus": 1,
   "userId": 1,
   "authorName": "Alice",
   "authorAvatar": "",
@@ -234,6 +235,8 @@ X-User-Role: ADMIN
 {
   "id": 1,
   "postId": 1,
+  "postStatus": 1,
+  "boardStatus": 1,
   "userId": 2,
   "authorName": "Bob",
   "authorAvatar": "",
@@ -253,6 +256,8 @@ X-User-Role: ADMIN
 {
   "id": 2,
   "postId": 1,
+  "postStatus": 1,
+  "boardStatus": 1,
   "userId": 3,
   "authorName": "Carol",
   "authorAvatar": "",
@@ -270,9 +275,11 @@ X-User-Role: ADMIN
 }
 ```
 
+如果 `parentReplyId` 指向的父回复已隐藏或已被管理员永久删除，`parentReply.contentPreview` 返回固定文案 `该评论已移除`，用于帖子详情页引用区域展示。
+
 ### 5.6 UserReplyListItemVO
 
-用于个人主页展示当前登录用户发表过的可见回复。所属帖子或版块不可见时，该回复不返回。`reference` 字段永远存在：如果 `parentReplyId` 不为空，引用父回复摘要；如果 `parentReplyId` 为空，引用原帖摘要。
+用于个人主页展示用户发表过的可见回复。所属帖子或版块不可见时，该回复不返回。`reference` 字段永远存在：如果 `parentReplyId` 不为空，引用父回复摘要；如果 `parentReplyId` 为空，引用原帖摘要。
 
 ```json
 {
@@ -390,7 +397,7 @@ POST /api/user/login
 }
 ```
 
-### 6.3 获取个人资料
+### 6.3 获取当前登录用户资料
 
 ```text
 GET /api/user/profile
@@ -407,7 +414,23 @@ X-User-Role: USER
 
 响应 `data`：`UserVO`
 
-### 6.4 修改个人资料
+### 6.4 获取指定用户资料
+
+```text
+GET /api/user/profile/{id}
+```
+
+公开接口。用于 `/profile/:id` 用户主页展示指定用户资料，未登录用户也可以访问。
+
+路径参数：
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `id` | number | 是 | 用户 ID |
+
+响应 `data`：`UserVO`
+
+### 6.5 修改个人资料
 
 ```text
 PUT /api/user/profile
@@ -444,7 +467,7 @@ X-User-Role: USER
 
 响应 `data`：`UserVO`
 
-### 6.5 上传头像
+### 6.6 上传头像
 
 ```text
 POST /api/user/avatar
@@ -484,7 +507,7 @@ Content-Type: multipart/form-data
 
 说明：头像图片保存在后端本地上传目录，数据库仅保存可访问路径；未上传头像时 `avatar` 仍为空字符串。资料编辑页选择图片后仅在当前页面生成预览，用户点击“保存”后才调用该接口并更新当前登录用户头像。
 
-### 6.6 修改密码
+### 6.7 修改密码
 
 ```text
 PUT /api/user/password
@@ -521,7 +544,7 @@ X-User-Role: USER
 true
 ```
 
-### 6.7 获取我的回复列表
+### 6.8 获取我的回复列表
 
 ```text
 GET /api/user/replies
@@ -535,6 +558,22 @@ GET /api/user/replies
 X-User-Id: 1
 X-User-Role: USER
 ```
+
+响应 `data`：数组，元素为 `UserReplyListItemVO`；前端个人主页自行分页展示。
+
+### 6.9 获取指定用户回复列表
+
+```text
+GET /api/user/{id}/replies
+```
+
+公开接口。用于 `/profile/:id` 用户主页展示指定用户发表过的可见回复；仅返回回复、所属帖子和所属版块均为 `status=1` 的数据。
+
+路径参数：
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `id` | number | 是 | 用户 ID |
 
 响应 `data`：数组，元素为 `UserReplyListItemVO`；前端个人主页自行分页展示。
 
@@ -613,7 +652,7 @@ GET /api/posts
 | `keyword` | string | 否 | 空 | 去除首尾空白后，仅按帖子标题做不区分大小写的包含搜索 |
 | `sort` | string | 否 | `latest` | 排序值：`latest`、`views`、`replies`；兼容保留 `newest` |
 
-`boardId`、`userId`、`keyword` 和 `sort` 可以组合使用；前台仍只返回帖子自身和所属版块均为 `status=1` 的帖子，因此 `/profile` 不展示已停用版块下的用户发帖。
+`boardId`、`userId`、`keyword` 和 `sort` 可以组合使用；前台仍只返回帖子自身和所属版块均为 `status=1` 的帖子，因此 `/profile` 和 `/profile/:id` 不展示已停用版块下的用户发帖。
 
 排序规则：
 
@@ -949,7 +988,7 @@ PUT /api/admin/boards/{id}
 DELETE /api/admin/boards/{id}
 ```
 
-建议后端软删除或停用，将版块 `status` 更新为 `0`。若版块下已有帖子，不建议物理删除。
+用于管理员从管理端永久删除已停用版块。删除版块会级联删除其下所有帖子和回复；前端只在停用版块 section 中提供该操作，正常版块应先通过修改版块状态停用。
 
 路径参数：
 
@@ -969,7 +1008,7 @@ true
 GET /api/admin/posts
 ```
 
-管理员可查看正常和隐藏帖子，包括所属版块已停用的帖子。
+管理员可查看正常和隐藏帖子，包括所属版块已停用的帖子。`PostListItemVO.boardStatus` 用于管理端标识所属版块已停用但帖子自身仍正常的情况。
 
 查询参数：
 
@@ -1018,7 +1057,7 @@ PUT /api/admin/posts/{id}/status
 DELETE /api/admin/posts/{id}
 ```
 
-用于管理员从管理端隐藏帖子。语义等同于将帖子 `status` 更新为 `0`。
+用于管理员从管理端永久删除已隐藏帖子。删除帖子会级联删除其下所有回复；前端只在隐藏帖子 section 中提供该操作，正常帖子应先通过 `PUT /api/admin/posts/{id}/status` 隐藏。
 
 路径参数：
 
@@ -1038,7 +1077,7 @@ true
 GET /api/admin/replies
 ```
 
-管理员可查看全部正常和隐藏回复，包括所属版块已停用的帖子下的回复，用于独立的回复管理页。
+管理员可查看全部正常和隐藏回复，包括所属帖子已隐藏或所属版块已停用的回复，用于独立的回复管理页。`ReplyVO.postStatus` 和 `ReplyVO.boardStatus` 用于管理端标识父级已隐藏但回复自身仍正常的情况。
 
 查询参数：
 
@@ -1109,7 +1148,7 @@ PUT /api/admin/replies/{id}/status
 DELETE /api/admin/replies/{id}
 ```
 
-用于管理员从管理端隐藏回复。语义等同于将回复 `status` 更新为 `0`，前端优先使用 `PUT /api/admin/replies/{id}/status` 表达隐藏和恢复。
+用于管理员从管理端永久删除已隐藏回复。删除回复不会级联删除引用它的子回复；子回复保留，引用区域统一显示 `该评论已移除`。前端只在隐藏回复 section 中提供该操作，正常回复应先通过 `PUT /api/admin/replies/{id}/status` 隐藏。
 
 路径参数：
 
@@ -1206,11 +1245,13 @@ true
 | --- | --- | --- | --- | --- |
 | 用户 | `POST` | `/api/user/register` | 公开 | 用户注册 |
 | 用户 | `POST` | `/api/user/login` | 公开 | 用户/管理员登录 |
-| 用户 | `GET` | `/api/user/profile` | 登录 | 获取个人资料 |
+| 用户 | `GET` | `/api/user/profile` | 登录 | 获取当前登录用户资料 |
+| 用户 | `GET` | `/api/user/profile/{id}` | 公开 | 获取指定用户资料 |
 | 用户 | `PUT` | `/api/user/profile` | 登录 | 修改个人资料 |
 | 用户 | `POST` | `/api/user/avatar` | 登录 | 上传头像 |
 | 用户 | `PUT` | `/api/user/password` | 登录 | 修改密码 |
 | 用户 | `GET` | `/api/user/replies` | 登录 | 获取我的回复列表 |
+| 用户 | `GET` | `/api/user/{id}/replies` | 公开 | 获取指定用户回复列表 |
 | 版块 | `GET` | `/api/boards` | 公开 | 获取启用版块列表 |
 | 版块 | `GET` | `/api/boards/{id}` | 公开 | 获取版块详情 |
 | 帖子 | `GET` | `/api/posts` | 公开 | 获取帖子列表 |
@@ -1224,11 +1265,11 @@ true
 | 管理员 | `GET` | `/api/admin/boards` | 管理员 | 管理端版块列表 |
 | 管理员 | `POST` | `/api/admin/boards` | 管理员 | 新增版块 |
 | 管理员 | `PUT` | `/api/admin/boards/{id}` | 管理员 | 修改版块 |
-| 管理员 | `DELETE` | `/api/admin/boards/{id}` | 管理员 | 删除或停用版块 |
+| 管理员 | `DELETE` | `/api/admin/boards/{id}` | 管理员 | 永久删除停用版块 |
 | 管理员 | `GET` | `/api/admin/posts` | 管理员 | 管理端帖子列表 |
 | 管理员 | `PUT` | `/api/admin/posts/{id}/status` | 管理员 | 修改帖子状态 |
-| 管理员 | `DELETE` | `/api/admin/posts/{id}` | 管理员 | 管理员删除或隐藏帖子 |
+| 管理员 | `DELETE` | `/api/admin/posts/{id}` | 管理员 | 永久删除隐藏帖子 |
 | 管理员 | `GET` | `/api/admin/replies` | 管理员 | 管理端全部回复列表 |
 | 管理员 | `GET` | `/api/admin/posts/{postId}/replies` | 管理员 | 管理端帖子回复列表 |
 | 管理员 | `PUT` | `/api/admin/replies/{id}/status` | 管理员 | 修改回复状态 |
-| 管理员 | `DELETE` | `/api/admin/replies/{id}` | 管理员 | 管理员删除或隐藏回复 |
+| 管理员 | `DELETE` | `/api/admin/replies/{id}` | 管理员 | 永久删除隐藏回复 |

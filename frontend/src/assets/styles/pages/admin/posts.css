@@ -132,12 +132,22 @@
   font-size: 13px;
 }
 
+.admin-posts-page .admin-table__cell--actions {
+  width: 156px;
+}
+
 .admin-posts-title-link {
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   color: #1d1d1f;
+}
+
+.admin-posts-title-link--in-hidden-board {
+  color: #8e8e93;
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
 }
 
 .admin-posts-board-badge {

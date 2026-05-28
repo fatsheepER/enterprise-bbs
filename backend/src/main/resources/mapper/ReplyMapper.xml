@@ -6,6 +6,8 @@
     <resultMap id="ReplyVOResultMap" type="com.feiyang.bbs.vo.ReplyVO">
         <id property="id" column="id"/>
         <result property="postId" column="post_id"/>
+        <result property="postStatus" column="post_status"/>
+        <result property="boardStatus" column="board_status"/>
         <result property="userId" column="user_id"/>
         <result property="authorName" column="author_name"/>
         <result property="authorAvatar" column="author_avatar"/>
@@ -30,14 +32,20 @@
         SELECT
             r.id,
             r.post_id,
+            p.status AS post_status,
+            b.status AS board_status,
             r.user_id,
             COALESCE(NULLIF(u.nickname, ''), u.username) AS author_name,
             u.avatar AS author_avatar,
             u.role AS author_role,
             r.parent_reply_id,
-            COALESCE(NULLIF(pu.nickname, ''), pu.username) AS parent_author_name,
             CASE
-                WHEN pr.id IS NULL THEN NULL
+                WHEN r.parent_reply_id IS NOT NULL AND (pr.id IS NULL OR pr.status = 0) THEN '已移除'
+                ELSE COALESCE(NULLIF(pu.nickname, ''), pu.username)
+            END AS parent_author_name,
+            CASE
+                WHEN r.parent_reply_id IS NULL THEN NULL
+                WHEN pr.id IS NULL OR pr.status = 0 THEN '该评论已移除'
                 WHEN length(pr.content) > 80 THEN substring(pr.content from 1 for 80) || '...'
                 ELSE pr.content
             END AS parent_content_preview,
@@ -102,4 +110,21 @@
             updated_at = CURRENT_TIMESTAMP
         WHERE id = #{id}
     </update>
+
+    <delete id="deleteById">
+        DELETE FROM replies
+        WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteByPostId">
+        DELETE FROM replies
+        WHERE post_id = #{postId}
+    </delete>
+
+    <delete id="deleteByBoardId">
+        DELETE FROM replies r
+        USING posts p
+        WHERE r.post_id = p.id
+          AND p.board_id = #{boardId}
+    </delete>
 </mapper>
