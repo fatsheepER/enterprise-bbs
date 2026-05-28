@@ -158,7 +158,8 @@ src/assets          全局样式
 - `/boards/:id`：版块详情页，展示该版块下的帖子并支持相同排序选项
 - `/posts/:id`：帖子详情页，展示帖子正文和回复流
 - `/create-post`：发表帖子
-- `/profile`：个人资料
+- `/profile`：当前登录用户个人资料
+- `/profile/:id`：公开用户主页，从帖子详情页点击用户头像进入，展示该用户资料、可见发帖和可见回复
 
 说明：普通用户前台不整体挂在 `/user` 下面。`/user` 更适合作为用户中心或用户个人主页的路径，而论坛公共内容区应直接使用 `/`、`/posts`、`/boards/:id` 等路由。
 
@@ -253,7 +254,7 @@ status = 1 正常
 status = 0 隐藏或停用
 ```
 
-可见性规则：版块停用后，其下帖子和回复不再出现在普通前台页面（包括 `/profile` 的发帖与回复列表）；管理员仍可在 `/admin/posts` 和 `/admin/replies` 中查看和管理这些内容。
+可见性规则：版块停用后，其下帖子和回复不再出现在普通前台页面（包括 `/profile` 和 `/profile/:id` 的发帖与回复列表）；管理员仍可在 `/admin/posts` 和 `/admin/replies` 中查看和管理这些内容。
 
 ## 7. 后端接口规划
 
@@ -262,7 +263,10 @@ status = 0 隐藏或停用
 - `POST /user/register`
 - `POST /user/login`
 - `GET /user/profile`
+- `GET /user/profile/{id}`
 - `PUT /user/profile`
+- `GET /user/replies`
+- `GET /user/{id}/replies`
 
 ### 版块接口
 

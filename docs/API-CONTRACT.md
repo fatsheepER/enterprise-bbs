@@ -120,7 +120,7 @@ X-User-Role: ADMIN
 
 ### 3.3 权限规则
 
-- 未登录用户只能访问注册、登录、版块列表、版块详情、帖子列表、帖子详情、回复列表等公开读取接口。
+- 未登录用户只能访问注册、登录、版块列表、版块详情、帖子列表、帖子详情、回复列表、公开用户资料、公开用户回复列表等公开读取接口。
 - 普通用户可以修改自己的资料、发帖、回复、删除自己的帖子和回复。
 - 管理员可以发帖、回复，并可以访问 `/api/admin/**` 接口管理版块、帖子和回复状态。
 - 后端可以根据 `X-User-Id` 和 `X-User-Role` 做基础权限校验。
@@ -272,7 +272,7 @@ X-User-Role: ADMIN
 
 ### 5.6 UserReplyListItemVO
 
-用于个人主页展示当前登录用户发表过的可见回复。所属帖子或版块不可见时，该回复不返回。`reference` 字段永远存在：如果 `parentReplyId` 不为空，引用父回复摘要；如果 `parentReplyId` 为空，引用原帖摘要。
+用于个人主页展示用户发表过的可见回复。所属帖子或版块不可见时，该回复不返回。`reference` 字段永远存在：如果 `parentReplyId` 不为空，引用父回复摘要；如果 `parentReplyId` 为空，引用原帖摘要。
 
 ```json
 {
@@ -390,7 +390,7 @@ POST /api/user/login
 }
 ```
 
-### 6.3 获取个人资料
+### 6.3 获取当前登录用户资料
 
 ```text
 GET /api/user/profile
@@ -407,7 +407,23 @@ X-User-Role: USER
 
 响应 `data`：`UserVO`
 
-### 6.4 修改个人资料
+### 6.4 获取指定用户资料
+
+```text
+GET /api/user/profile/{id}
+```
+
+公开接口。用于 `/profile/:id` 用户主页展示指定用户资料，未登录用户也可以访问。
+
+路径参数：
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `id` | number | 是 | 用户 ID |
+
+响应 `data`：`UserVO`
+
+### 6.5 修改个人资料
 
 ```text
 PUT /api/user/profile
@@ -444,7 +460,7 @@ X-User-Role: USER
 
 响应 `data`：`UserVO`
 
-### 6.5 上传头像
+### 6.6 上传头像
 
 ```text
 POST /api/user/avatar
@@ -484,7 +500,7 @@ Content-Type: multipart/form-data
 
 说明：头像图片保存在后端本地上传目录，数据库仅保存可访问路径；未上传头像时 `avatar` 仍为空字符串。资料编辑页选择图片后仅在当前页面生成预览，用户点击“保存”后才调用该接口并更新当前登录用户头像。
 
-### 6.6 修改密码
+### 6.7 修改密码
 
 ```text
 PUT /api/user/password
@@ -521,7 +537,7 @@ X-User-Role: USER
 true
 ```
 
-### 6.7 获取我的回复列表
+### 6.8 获取我的回复列表
 
 ```text
 GET /api/user/replies
@@ -535,6 +551,22 @@ GET /api/user/replies
 X-User-Id: 1
 X-User-Role: USER
 ```
+
+响应 `data`：数组，元素为 `UserReplyListItemVO`；前端个人主页自行分页展示。
+
+### 6.9 获取指定用户回复列表
+
+```text
+GET /api/user/{id}/replies
+```
+
+公开接口。用于 `/profile/:id` 用户主页展示指定用户发表过的可见回复；仅返回回复、所属帖子和所属版块均为 `status=1` 的数据。
+
+路径参数：
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `id` | number | 是 | 用户 ID |
 
 响应 `data`：数组，元素为 `UserReplyListItemVO`；前端个人主页自行分页展示。
 
@@ -613,7 +645,7 @@ GET /api/posts
 | `keyword` | string | 否 | 空 | 去除首尾空白后，仅按帖子标题做不区分大小写的包含搜索 |
 | `sort` | string | 否 | `latest` | 排序值：`latest`、`views`、`replies`；兼容保留 `newest` |
 
-`boardId`、`userId`、`keyword` 和 `sort` 可以组合使用；前台仍只返回帖子自身和所属版块均为 `status=1` 的帖子，因此 `/profile` 不展示已停用版块下的用户发帖。
+`boardId`、`userId`、`keyword` 和 `sort` 可以组合使用；前台仍只返回帖子自身和所属版块均为 `status=1` 的帖子，因此 `/profile` 和 `/profile/:id` 不展示已停用版块下的用户发帖。
 
 排序规则：
 
@@ -1206,11 +1238,13 @@ true
 | --- | --- | --- | --- | --- |
 | 用户 | `POST` | `/api/user/register` | 公开 | 用户注册 |
 | 用户 | `POST` | `/api/user/login` | 公开 | 用户/管理员登录 |
-| 用户 | `GET` | `/api/user/profile` | 登录 | 获取个人资料 |
+| 用户 | `GET` | `/api/user/profile` | 登录 | 获取当前登录用户资料 |
+| 用户 | `GET` | `/api/user/profile/{id}` | 公开 | 获取指定用户资料 |
 | 用户 | `PUT` | `/api/user/profile` | 登录 | 修改个人资料 |
 | 用户 | `POST` | `/api/user/avatar` | 登录 | 上传头像 |
 | 用户 | `PUT` | `/api/user/password` | 登录 | 修改密码 |
 | 用户 | `GET` | `/api/user/replies` | 登录 | 获取我的回复列表 |
+| 用户 | `GET` | `/api/user/{id}/replies` | 公开 | 获取指定用户回复列表 |
 | 版块 | `GET` | `/api/boards` | 公开 | 获取启用版块列表 |
 | 版块 | `GET` | `/api/boards/{id}` | 公开 | 获取版块详情 |
 | 帖子 | `GET` | `/api/posts` | 公开 | 获取帖子列表 |

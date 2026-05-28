@@ -440,9 +440,13 @@ async function submitReply() {
 
     <article class="post-block post-block--main">
       <div class="post-block__header">
-        <div class="post-block__avatar" aria-hidden="true">
+        <RouterLink
+          class="post-block__avatar"
+          :to="{ name: 'profile-detail', params: { id: post.userId } }"
+          :aria-label="`查看 ${post.authorName} 的个人主页`"
+        >
           <img class="post-block__avatar-image" :src="avatarSrc(post.authorAvatar)" alt="" />
-        </div>
+        </RouterLink>
 
         <div class="post-block__meta-row">
           <div class="post-block__author-group">
@@ -491,9 +495,13 @@ async function submitReply() {
         class="post-block post-block--reply"
       >
         <div class="post-block__header">
-          <div class="post-block__avatar" aria-hidden="true">
+          <RouterLink
+            class="post-block__avatar"
+            :to="{ name: 'profile-detail', params: { id: reply.userId } }"
+            :aria-label="`查看 ${reply.authorName} 的个人主页`"
+          >
             <img class="post-block__avatar-image" :src="avatarSrc(reply.authorAvatar)" alt="" />
-          </div>
+          </RouterLink>
 
           <div class="post-block__meta-row">
             <div class="post-block__author-group">
