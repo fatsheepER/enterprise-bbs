@@ -88,11 +88,11 @@ const visibleReplyCount = computed(() => replies.value.length)
 const replyPlaceholder = computed(() => `回复： ${replyTarget.value?.contentPreview ?? ''}`)
 const canSubmit = computed(() => draft.value.trim().length > 0)
 const canDeletePost = computed(
-  () => post.value?.userId === authStore.currentUser?.id,
+  () => !authStore.isAdmin && post.value?.userId === authStore.currentUser?.id,
 )
 
 function canDeleteReply(reply) {
-  return reply.userId === authStore.currentUser?.id
+  return !authStore.isAdmin && reply.userId === authStore.currentUser?.id
 }
 
 function requireLogin() {
