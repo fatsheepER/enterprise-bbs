@@ -11,6 +11,7 @@ public class PostListItemVO {
     private Long boardId;
     private String boardName;
     private String boardColorHex;
+    private Integer boardStatus;
     private Long userId;
     private String authorName;
     private String authorAvatar;

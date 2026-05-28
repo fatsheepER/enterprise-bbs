@@ -9,6 +9,8 @@ import lombok.Data;
 public class ReplyVO {
     private Long id;
     private Long postId;
+    private Integer postStatus;
+    private Integer boardStatus;
     private Long userId;
     private String authorName;
     private String authorAvatar;

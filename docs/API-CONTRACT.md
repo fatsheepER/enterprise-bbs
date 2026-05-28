@@ -192,6 +192,7 @@ X-User-Role: ADMIN
   "boardId": 1,
   "boardName": "技术交流",
   "boardColorHex": "#007aff",
+  "boardStatus": 1,
   "userId": 1,
   "authorName": "Alice",
   "authorAvatar": "",
@@ -234,6 +235,8 @@ X-User-Role: ADMIN
 {
   "id": 1,
   "postId": 1,
+  "postStatus": 1,
+  "boardStatus": 1,
   "userId": 2,
   "authorName": "Bob",
   "authorAvatar": "",
@@ -253,6 +256,8 @@ X-User-Role: ADMIN
 {
   "id": 2,
   "postId": 1,
+  "postStatus": 1,
+  "boardStatus": 1,
   "userId": 3,
   "authorName": "Carol",
   "authorAvatar": "",
@@ -269,6 +274,8 @@ X-User-Role: ADMIN
   "updatedAt": "2026-05-23 16:35:00"
 }
 ```
+
+如果 `parentReplyId` 指向的父回复已隐藏，`parentReply.contentPreview` 返回固定文案 `回复已隐藏`，用于帖子详情页引用区域展示。
 
 ### 5.6 UserReplyListItemVO
 
@@ -1001,7 +1008,7 @@ true
 GET /api/admin/posts
 ```
 
-管理员可查看正常和隐藏帖子，包括所属版块已停用的帖子。
+管理员可查看正常和隐藏帖子，包括所属版块已停用的帖子。`PostListItemVO.boardStatus` 用于管理端标识所属版块已停用但帖子自身仍正常的情况。
 
 查询参数：
 
@@ -1070,7 +1077,7 @@ true
 GET /api/admin/replies
 ```
 
-管理员可查看全部正常和隐藏回复，包括所属版块已停用的帖子下的回复，用于独立的回复管理页。
+管理员可查看全部正常和隐藏回复，包括所属帖子已隐藏或所属版块已停用的回复，用于独立的回复管理页。`ReplyVO.postStatus` 和 `ReplyVO.boardStatus` 用于管理端标识父级已隐藏但回复自身仍正常的情况。
 
 查询参数：
 

@@ -119,6 +119,10 @@ function splitDateTime(dateTime) {
   }
 }
 
+function isPostInHiddenBoard(post) {
+  return post.boardStatus === 0
+}
+
 async function setPostStatus(post, status) {
   await updateAdminPostStatus(post.id, status)
   await loadPosts()
@@ -179,6 +183,7 @@ function nextHiddenPage() {
         <template #cell-title="{ row, value }">
           <RouterLink
             class="admin-posts-title-link"
+            :class="{ 'admin-posts-title-link--in-hidden-board': isPostInHiddenBoard(row) }"
             :to="{ name: 'post-detail', params: { id: row.id } }"
           >
             {{ value }}
@@ -241,6 +246,7 @@ function nextHiddenPage() {
         <template #cell-title="{ row, value }">
           <RouterLink
             class="admin-posts-title-link"
+            :class="{ 'admin-posts-title-link--in-hidden-board': isPostInHiddenBoard(row) }"
             :to="{ name: 'post-detail', params: { id: row.id } }"
           >
             {{ value }}

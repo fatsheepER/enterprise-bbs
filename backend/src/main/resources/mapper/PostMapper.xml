@@ -8,6 +8,7 @@
         <result property="boardId" column="board_id"/>
         <result property="boardName" column="board_name"/>
         <result property="boardColorHex" column="board_color_hex"/>
+        <result property="boardStatus" column="board_status"/>
         <result property="userId" column="user_id"/>
         <result property="authorName" column="author_name"/>
         <result property="authorAvatar" column="author_avatar"/>
@@ -49,6 +50,7 @@
             p.board_id,
             b.name AS board_name,
             b.color_hex AS board_color_hex,
+            b.status AS board_status,
             p.user_id,
             COALESCE(NULLIF(u.nickname, ''), u.username) AS author_name,
             u.avatar AS author_avatar,

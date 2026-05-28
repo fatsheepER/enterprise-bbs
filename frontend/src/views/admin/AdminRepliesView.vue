@@ -111,6 +111,10 @@ function splitDateTime(dateTime) {
   }
 }
 
+function isReplyInHiddenContext(reply) {
+  return reply.postStatus === 0 || reply.boardStatus === 0
+}
+
 async function setReplyStatus(reply, status) {
   await updateAdminReplyStatus(reply.id, status)
   await loadReplies()
@@ -170,7 +174,13 @@ function nextHiddenPage() {
       >
         <template #cell-contentPreview="{ row, value }">
           <RouterLink class="admin-replies-content admin-replies-content-link" :to="row.href">
-            {{ value }}
+            <span
+              :class="{
+                'admin-replies-content--in-hidden-context': isReplyInHiddenContext(row),
+              }"
+            >
+              {{ value }}
+            </span>
           </RouterLink>
         </template>
 
@@ -221,8 +231,13 @@ function nextHiddenPage() {
         aria-label="隐藏回复列表"
         empty-text="暂无隐藏回复"
       >
-        <template #cell-contentPreview="{ value }">
-          <span class="admin-replies-content">{{ value }}</span>
+        <template #cell-contentPreview="{ row, value }">
+          <span
+            class="admin-replies-content"
+            :class="{ 'admin-replies-content--in-hidden-context': isReplyInHiddenContext(row) }"
+          >
+            {{ value }}
+          </span>
         </template>
 
         <template #cell-createdAt="{ value }">

@@ -6,6 +6,8 @@
     <resultMap id="ReplyVOResultMap" type="com.feiyang.bbs.vo.ReplyVO">
         <id property="id" column="id"/>
         <result property="postId" column="post_id"/>
+        <result property="postStatus" column="post_status"/>
+        <result property="boardStatus" column="board_status"/>
         <result property="userId" column="user_id"/>
         <result property="authorName" column="author_name"/>
         <result property="authorAvatar" column="author_avatar"/>
@@ -30,6 +32,8 @@
         SELECT
             r.id,
             r.post_id,
+            p.status AS post_status,
+            b.status AS board_status,
             r.user_id,
             COALESCE(NULLIF(u.nickname, ''), u.username) AS author_name,
             u.avatar AS author_avatar,
@@ -38,6 +42,7 @@
             COALESCE(NULLIF(pu.nickname, ''), pu.username) AS parent_author_name,
             CASE
                 WHEN pr.id IS NULL THEN NULL
+                WHEN pr.status = 0 THEN '回复已隐藏'
                 WHEN length(pr.content) > 80 THEN substring(pr.content from 1 for 80) || '...'
                 ELSE pr.content
             END AS parent_content_preview,

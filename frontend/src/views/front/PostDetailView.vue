@@ -276,7 +276,13 @@ function removeReplyFromList(replyId) {
         return reply
       }
 
-      return { ...reply, parentReply: null }
+      return {
+        ...reply,
+        parentReply: {
+          ...reply.parentReply,
+          contentPreview: '回复已隐藏',
+        },
+      }
     })
 
   if (replyTarget.value?.type === 'reply' && replyTarget.value.id === replyId) {

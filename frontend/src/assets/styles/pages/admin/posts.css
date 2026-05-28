@@ -140,6 +140,12 @@
   color: #1d1d1f;
 }
 
+.admin-posts-title-link--in-hidden-board {
+  color: #8e8e93;
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
 .admin-posts-board-badge {
   max-width: 100%;
 }

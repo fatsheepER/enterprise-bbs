@@ -137,6 +137,12 @@
   line-height: 1.35;
 }
 
+.admin-replies-content--in-hidden-context {
+  color: #8e8e93;
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
 .admin-replies-content-link:hover,
 .admin-replies-content-link:focus-visible {
   text-decoration: none;
